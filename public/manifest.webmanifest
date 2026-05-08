@@ -1,0 +1,15 @@
+{
+  "name": "Bear Meat Tycoon",
+  "short_name": "BearMeat",
+  "start_url": "/mobile-game/",
+  "scope": "/mobile-game/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1410",
+  "theme_color": "#1a1410",
+  "icons": [
+    { "src": "/mobile-game/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/mobile-game/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/mobile-game/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
