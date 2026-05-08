@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createWorld } from '../../src/world.js';
+import { createWorld, dropMeatRaw } from '../../src/world.js';
 import { update as updatePlayer } from '../../src/systems/player.js';
 import { spawnBear } from '../../src/world.js';
 import { BALANCE } from '../../src/balance.js';
@@ -95,5 +95,57 @@ describe('player auto-attack', () => {
     const hpBefore = bear.hp;
     updatePlayer(w, 1.0);
     expect(bear.hp).toBe(hpBefore);
+  });
+});
+
+describe('player death and respawn', () => {
+  it('transitions to dead when hp reaches 0', () => {
+    const w = createWorld();
+    w.player.hp = 0;
+    updatePlayer(w, 0.016);
+    expect(w.player.state).toBe('dead');
+    expect(w.player.respawnTimer).toBe(BALANCE.player.respawn);
+  });
+
+  it('drops carried raw meat at death position', () => {
+    const w = createWorld();
+    w.player.hp = 0;
+    w.player.pos = { x: 5, y: 0, z: 5 };
+    w.player.stack = { type: 'raw', count: 3, max: BALANCE.player.stack.max };
+    const droppedBefore = w.meatRaw.length;
+    updatePlayer(w, 0.016);
+    expect(w.meatRaw.length).toBe(droppedBefore + 3);
+    expect(w.player.stack.count).toBe(0);
+    expect(w.player.stack.type).toBe(null);
+  });
+
+  it('drops carried cooked meat as cooked', () => {
+    const w = createWorld();
+    w.player.hp = 0;
+    w.player.pos = { x: 0, y: 0, z: 0 };
+    w.player.stack = { type: 'cooked', count: 2, max: BALANCE.player.stack.max };
+    updatePlayer(w, 0.016);
+    expect(w.meatCooked.length).toBe(2);
+  });
+
+  it('respawn timer counts down while dead', () => {
+    const w = createWorld();
+    w.player.state = 'dead';
+    w.player.respawnTimer = 1.0;
+    updatePlayer(w, 0.4);
+    expect(w.player.respawnTimer).toBeCloseTo(0.6, 5);
+    expect(w.player.state).toBe('dead');
+  });
+
+  it('respawns at base center with full HP when timer reaches 0', () => {
+    const w = createWorld();
+    w.player.state = 'dead';
+    w.player.respawnTimer = 0.05;
+    w.player.hp = 0;
+    w.player.pos = { x: 99, y: 0, z: 99 };
+    updatePlayer(w, 0.1);
+    expect(w.player.state).toBe('alive');
+    expect(w.player.hp).toBe(BALANCE.player.hpMax);
+    expect(w.player.pos).toEqual({ x: 0, y: 0, z: 0 });
   });
 });

@@ -1,8 +1,48 @@
 import { killBear } from '../world.js';
+import { BALANCE } from '../balance.js';
+
+function dropStack(world) {
+  const p = world.player;
+  if (p.stack.count <= 0 || p.stack.type === null) return;
+  const arr = p.stack.type === 'raw' ? world.meatRaw : world.meatCooked;
+  for (let i = 0; i < p.stack.count; i++) {
+    const angle = (i / p.stack.count) * Math.PI * 2;
+    const r = 0.5;
+    const piece = {
+      id: ++world.nextId,
+      pos: { x: p.pos.x + Math.cos(angle) * r, z: p.pos.z + Math.sin(angle) * r },
+      despawnTimer: BALANCE.meat.despawn,
+    };
+    arr.push(piece);
+  }
+  p.stack.count = 0;
+  p.stack.type = null;
+}
 
 export function update(world, dt) {
   const p = world.player;
-  if (p.state !== 'alive') return;
+
+  // Death detection
+  if (p.state === 'alive' && p.hp <= 0) {
+    p.state = 'dead';
+    p.respawnTimer = BALANCE.player.respawn;
+    dropStack(world);
+    return;
+  }
+
+  // Respawn countdown
+  if (p.state === 'dead') {
+    p.respawnTimer -= dt;
+    if (p.respawnTimer <= 0) {
+      p.state = 'alive';
+      p.hp = p.hpMax;
+      p.pos.x = world.base.center.x;
+      p.pos.y = 0;
+      p.pos.z = world.base.center.z;
+      p.respawnTimer = 0;
+    }
+    return;
+  }
 
   // Movement
   let mx = p.input.move.x;
