@@ -36,13 +36,27 @@
 
 ## Процесс разработки
 
-Используем плагин **superpowers** (`obra/superpowers-marketplace`), установлен в
-`.claude/settings.json`. После перезапуска сессии и доверия workspace плагин подгрузится.
+Используем скиллы **superpowers** от Jesse Vincent (obra), завендоренные прямо в
+репозиторий: `.claude/skills/<skill-name>/SKILL.md`. Источник —
+[github.com/obra/superpowers](https://github.com/obra/superpowers), MIT-лицензия
+скопирована в `.claude/skills/SUPERPOWERS-LICENSE`.
 
-Рекомендуемый порядок команд в следующей сессии:
-1. `/brainstorm` — добить недостающие детали геймплея, баланс, прогрессия.
-2. `/write-plan` — формальный план реализации (этапы, файлы, зависимости).
-3. `/execute-plan` — пошаговая реализация по плану.
+Завендорено 14 скиллов: `using-superpowers`, `brainstorming`, `writing-plans`,
+`executing-plans`, `subagent-driven-development`, `dispatching-parallel-agents`,
+`test-driven-development`, `systematic-debugging`, `verification-before-completion`,
+`receiving-code-review`, `requesting-code-review`, `writing-skills`,
+`using-git-worktrees`, `finishing-a-development-branch`.
+
+Рекомендуемый порядок работы:
+1. **brainstorming** — добить недостающие детали геймплея, баланс, прогрессия,
+   получить согласованный design-doc.
+2. **writing-plans** — формальный план реализации (этапы, файлы, зависимости).
+3. **executing-plans** или **subagent-driven-development** — пошаговая реализация.
+4. **test-driven-development** + **verification-before-completion** — на каждом
+   этапе писать тесты раньше кода и проверять прохождение перед коммитом.
+
+Скиллы вызываются через инструмент **Skill** (например, `Skill(skill: "brainstorming")`).
+Если в сессии доступны как slash-команды (`/brainstorm` и т.п.) — используй их.
 
 ## Branch
 
