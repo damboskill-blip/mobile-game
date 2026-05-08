@@ -1,4 +1,4 @@
-import { BALANCE } from './balance.js';
+import { BALANCE, BALANCE_VERSION } from './balance.js';
 
 export function createWorld() {
   return {
@@ -45,4 +45,44 @@ function createFenceSegments() {
     });
   }
   return segments;
+}
+
+export const SAVE_KEY = 'bmt:save:v1';
+
+export function saveWorld(world, storage = globalThis.localStorage) {
+  if (!storage) return;
+  const payload = {
+    version: BALANCE_VERSION,
+    money: { pocket: world.money.pocket },
+    fence: {
+      segments: world.fence.segments.map(s => ({
+        id: s.id, hp: s.hp, broken: s.broken,
+      })),
+    },
+    time: { elapsed: world.time.elapsed },
+    upgradePads: world.upgradePads.map(p => ({
+      id: p.id, type: p.type, deposited: p.deposited, completed: p.completed,
+    })),
+    employees: world.employees.map(e => ({ id: e.id, type: e.type })),
+  };
+  storage.setItem(SAVE_KEY, JSON.stringify(payload));
+}
+
+export function loadWorld(world, storage = globalThis.localStorage) {
+  if (!storage) return;
+  const raw = storage.getItem(SAVE_KEY);
+  if (!raw) return;
+  let saved;
+  try { saved = JSON.parse(raw); } catch { return; }
+  if (saved.version !== BALANCE_VERSION) return;
+
+  if (saved.money) world.money.pocket = saved.money.pocket ?? 0;
+  if (saved.time) world.time.elapsed = saved.time.elapsed ?? 0;
+  if (saved.fence?.segments) {
+    for (const seg of saved.fence.segments) {
+      const target = world.fence.segments.find(s => s.id === seg.id);
+      if (target) { target.hp = seg.hp; target.broken = seg.broken; }
+    }
+  }
+  // upgradePads / employees restored in later phases when those systems exist
 }
