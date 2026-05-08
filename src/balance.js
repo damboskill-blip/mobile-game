@@ -18,11 +18,13 @@ export const BALANCE = {
     damageFenceBase: 10,
     damagePlayer: 15,
     attackCD: 1.0,
+    attackRange: 1.5,
     meatDrops: 3,
   },
   fence: {
     segments: 16,
     hpPerSegment: 100,
+    attackRange: 1.5,
   },
   fire: {
     capacity: 5,

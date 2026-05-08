@@ -18,6 +18,11 @@ describe('balance', () => {
     expect(BALANCE.base.radius).toBeGreaterThan(0);
     expect(Number.isFinite(BALANCE.base.radius)).toBe(true);
   });
+
+  it('combat ranges are positive', () => {
+    expect(BALANCE.bear.attackRange).toBeGreaterThan(0);
+    expect(BALANCE.fence.attackRange).toBeGreaterThan(0);
+  });
 });
 
 describe('difficulty scaling', () => {

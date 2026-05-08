@@ -86,3 +86,42 @@ export function loadWorld(world, storage = globalThis.localStorage) {
   }
   // upgradePads / employees restored in later phases when those systems exist
 }
+
+export function spawnBear(world, pos) {
+  const bear = {
+    id: ++world.nextId,
+    pos: { x: pos.x, z: pos.z },
+    rot: 0,
+    hp: BALANCE.bear.hpBase,
+    hpMax: BALANCE.bear.hpBase,
+    speed: BALANCE.bear.speed,
+    state: 'approaching',
+    target: null,
+    attackCD: 0,
+  };
+  world.bears.push(bear);
+  return bear;
+}
+
+export function dropMeatRaw(world, pos) {
+  const piece = {
+    id: ++world.nextId,
+    pos: { x: pos.x, z: pos.z },
+    despawnTimer: BALANCE.meat.despawn,
+  };
+  world.meatRaw.push(piece);
+  return piece;
+}
+
+export function killBear(world, bear) {
+  const idx = world.bears.indexOf(bear);
+  if (idx >= 0) world.bears.splice(idx, 1);
+  for (let i = 0; i < BALANCE.bear.meatDrops; i++) {
+    const angle = (i / BALANCE.bear.meatDrops) * Math.PI * 2;
+    const r = 0.6;
+    dropMeatRaw(world, {
+      x: bear.pos.x + Math.cos(angle) * r,
+      z: bear.pos.z + Math.sin(angle) * r,
+    });
+  }
+}
