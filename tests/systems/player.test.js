@@ -31,7 +31,15 @@ describe('player movement', () => {
     const w = createWorld();
     w.player.input.move = { x: 0, z: 1 };
     updatePlayer(w, 0.1);
-    expect(w.player.rot).toBeCloseTo(Math.atan2(1, 0), 5);
+    // moving +Z → mesh faces +Z (Three.js Y-rotation 0)
+    expect(w.player.rot).toBeCloseTo(0, 5);
+  });
+
+  it('rotation is π/2 when moving +X', () => {
+    const w = createWorld();
+    w.player.input.move = { x: 1, z: 0 };
+    updatePlayer(w, 0.1);
+    expect(w.player.rot).toBeCloseTo(Math.PI / 2, 5);
   });
 
   it('does not update when player.state is dead', () => {

@@ -9,6 +9,6 @@ export function update(world, dt) {
   if (len > 0.001) {
     p.pos.x += mx * p.speed * dt;
     p.pos.z += mz * p.speed * dt;
-    p.rot = Math.atan2(mz, mx);
+    p.rot = Math.atan2(mx, mz);
   }
 }
