@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { createWorld } from '../../src/world.js';
 import { update as updatePlayer } from '../../src/systems/player.js';
+import { spawnBear } from '../../src/world.js';
+import { BALANCE } from '../../src/balance.js';
 
 describe('player movement', () => {
   it('moves along input vector at player speed', () => {
@@ -49,5 +51,49 @@ describe('player movement', () => {
     const startX = w.player.pos.x;
     updatePlayer(w, 1.0);
     expect(w.player.pos.x).toBe(startX);
+  });
+});
+
+describe('player auto-attack', () => {
+  it('targets nearest bear within axe.range', () => {
+    const w = createWorld();
+    w.player.pos = { x: 0, y: 0, z: 0 };
+    const closeBear = spawnBear(w, { x: 1.0, z: 0 });
+    const farBear = spawnBear(w, { x: 5.0, z: 0 });
+    const farHpBefore = farBear.hp;
+    updatePlayer(w, 0.5);
+    expect(closeBear.hp).toBeLessThan(BALANCE.bear.hpBase);
+    expect(farBear.hp).toBe(farHpBefore);
+  });
+
+  it('does not attack bears outside axe.range', () => {
+    const w = createWorld();
+    w.player.pos = { x: 0, y: 0, z: 0 };
+    const farBear = spawnBear(w, { x: 5.0, z: 0 });
+    const hpBefore = farBear.hp;
+    updatePlayer(w, 1.0);
+    expect(farBear.hp).toBe(hpBefore);
+  });
+
+  it('respects axe.cooldown between attacks', () => {
+    const w = createWorld();
+    w.player.pos = { x: 0, y: 0, z: 0 };
+    const bear = spawnBear(w, { x: 0.5, z: 0 });
+    updatePlayer(w, 0.016); // first hit lands
+    const hpAfterFirst = bear.hp;
+    updatePlayer(w, 0.1); // less than cooldown 0.4 — no second hit
+    expect(bear.hp).toBe(hpAfterFirst);
+    updatePlayer(w, BALANCE.player.axe.cooldown); // total > cooldown
+    expect(bear.hp).toBeLessThan(hpAfterFirst);
+  });
+
+  it('does not attack when state is dead', () => {
+    const w = createWorld();
+    w.player.pos = { x: 0, y: 0, z: 0 };
+    w.player.state = 'dead';
+    const bear = spawnBear(w, { x: 0.5, z: 0 });
+    const hpBefore = bear.hp;
+    updatePlayer(w, 1.0);
+    expect(bear.hp).toBe(hpBefore);
   });
 });
