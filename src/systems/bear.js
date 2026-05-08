@@ -91,11 +91,14 @@ export function update(world, dt) {
         bear.state = 'attacking-player';
       }
     } else if (bear.state === 'attacking-player') {
-      // Player damage handled in Task 9. For now, hold position.
-      // If player moves out of range, return to chasing.
       const dist = Math.hypot(world.player.pos.x - bear.pos.x, world.player.pos.z - bear.pos.z);
       if (dist > BALANCE.bear.attackRange + 0.5) {
         bear.state = 'through';
+        continue;
+      }
+      if (bear.attackCD <= 0 && world.player.state === 'alive') {
+        world.player.hp = Math.max(0, world.player.hp - BALANCE.bear.damagePlayer);
+        bear.attackCD = BALANCE.bear.attackCD;
       }
     }
   }

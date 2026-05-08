@@ -119,3 +119,32 @@ describe('bear spawning', () => {
     expect(w.bears.length).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe('bear AI — attacking-player damage', () => {
+  it('damages player every attackCD seconds when in attacking-player state', () => {
+    const w = createWorld();
+    w.player.pos = { x: 0, y: 0, z: 0 };
+    const bear = spawnBear(w, { x: 0.5, z: 0 });
+    bear.state = 'attacking-player';
+    bear.attackCD = 0;
+    const hpBefore = w.player.hp;
+    updateBear(w, 0.016);
+    expect(w.player.hp).toBe(hpBefore - BALANCE.bear.damagePlayer);
+    updateBear(w, 0.5); // less than attackCD
+    expect(w.player.hp).toBe(hpBefore - BALANCE.bear.damagePlayer);
+    updateBear(w, BALANCE.bear.attackCD);
+    expect(w.player.hp).toBe(hpBefore - BALANCE.bear.damagePlayer * 2);
+  });
+
+  it('does not damage dead player', () => {
+    const w = createWorld();
+    w.player.pos = { x: 0, y: 0, z: 0 };
+    w.player.state = 'dead';
+    const bear = spawnBear(w, { x: 0.5, z: 0 });
+    bear.state = 'attacking-player';
+    bear.attackCD = 0;
+    const hpBefore = w.player.hp;
+    updateBear(w, 0.016);
+    expect(w.player.hp).toBe(hpBefore);
+  });
+});
