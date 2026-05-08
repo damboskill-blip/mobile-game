@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createWorld, saveWorld, loadWorld, SAVE_KEY } from '../src/world.js';
+import { spawnBear, dropMeatRaw, killBear } from '../src/world.js';
 import { BALANCE, BALANCE_VERSION } from '../src/balance.js';
 
 describe('createWorld', () => {
@@ -111,5 +112,49 @@ describe('save/load', () => {
     const w = createWorld();
     loadWorld(w, storage);
     expect(w.money.pocket).toBe(0);
+  });
+});
+
+describe('world helpers', () => {
+  it('spawnBear adds bear with auto-incremented id and required fields', () => {
+    const w = createWorld();
+    const bear = spawnBear(w, { x: 5, z: -3 });
+    expect(w.bears).toHaveLength(1);
+    expect(bear.id).toBe(1);
+    expect(bear.pos).toEqual({ x: 5, z: -3 });
+    expect(bear.hp).toBeGreaterThan(0);
+    expect(bear.state).toBe('approaching');
+    expect(bear.attackCD).toBe(0);
+    expect(bear.target).toBeNull();
+    expect(w.nextId).toBe(1);
+  });
+
+  it('subsequent spawns get distinct ids', () => {
+    const w = createWorld();
+    const a = spawnBear(w, { x: 0, z: 0 });
+    const b = spawnBear(w, { x: 1, z: 0 });
+    expect(a.id).not.toBe(b.id);
+    expect(w.bears).toHaveLength(2);
+  });
+
+  it('dropMeatRaw appends a piece with id and position', () => {
+    const w = createWorld();
+    const piece = dropMeatRaw(w, { x: 2, z: 4 });
+    expect(w.meatRaw).toHaveLength(1);
+    expect(piece.pos).toEqual({ x: 2, z: 4 });
+    expect(piece.despawnTimer).toBeGreaterThan(0);
+    expect(piece.id).toBeGreaterThan(0);
+  });
+
+  it('killBear removes the bear and drops BALANCE.bear.meatDrops pieces near its position', () => {
+    const w = createWorld();
+    const bear = spawnBear(w, { x: 10, z: 10 });
+    killBear(w, bear);
+    expect(w.bears).toHaveLength(0);
+    expect(w.meatRaw).toHaveLength(3); // BALANCE.bear.meatDrops
+    for (const m of w.meatRaw) {
+      // each drop is within ~1 unit of bear's death position
+      expect(Math.hypot(m.pos.x - 10, m.pos.z - 10)).toBeLessThan(1.5);
+    }
   });
 });
