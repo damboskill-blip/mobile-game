@@ -94,7 +94,7 @@ describe('save/load', () => {
     expect(w.time.elapsed).toBe(42);
     expect(w.fence.segments[0].hp).toBe(75);
     // ephemeral state is untouched
-    expect(w.player.hp).toBe(100);
+    expect(w.player.hp).toBe(BALANCE.player.hpMax);
     expect(w.bears).toEqual([]);
   });
 

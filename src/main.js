@@ -35,7 +35,7 @@ const systems = [updatePlayer];
 function render(world) {
   playerMesh.position.set(world.player.pos.x, 0, world.player.pos.z);
   playerMesh.rotation.y = world.player.rot;
-  updateCamera(camera, world);
+  updateCamera(camera, world, world.time.dt);
   hud.update(world);
   renderer.render(scene, camera);
 }

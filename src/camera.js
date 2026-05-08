@@ -12,10 +12,11 @@ export function createCamera() {
   return camera;
 }
 
-export function updateCamera(camera, world) {
+export function updateCamera(camera, world, dt) {
   const t = camera.lookAtTarget;
-  t.x += (world.player.pos.x - t.x) * FOLLOW_LERP;
-  t.z += (world.player.pos.z - t.z) * FOLLOW_LERP;
+  const alpha = 1 - Math.pow(1 - FOLLOW_LERP, dt * 60);
+  t.x += (world.player.pos.x - t.x) * alpha;
+  t.z += (world.player.pos.z - t.z) * alpha;
 
   // Camera offset behind+above target
   const offsetXZ = DISTANCE * Math.cos(ANGLE_RAD);

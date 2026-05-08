@@ -6,7 +6,6 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png', 'manifest.webmanifest'],
       manifest: false,
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,glb,webmanifest}'],
