@@ -1,4 +1,5 @@
-import { BALANCE } from '../balance.js';
+import { spawnBear } from '../world.js';
+import { BALANCE, bearSpawnPeriod, bearHp } from '../balance.js';
 import { damageFenceSegment } from './fence.js';
 
 export function findNearestUnbrokenSegment(world, pos) {
@@ -29,7 +30,30 @@ function moveToward(bear, targetPos, dt) {
   return dist;
 }
 
+export function spawnBearFromOutside(world) {
+  const angle = Math.random() * Math.PI * 2;
+  const r = world.base.radius + 6;
+  const bear = spawnBear(world, {
+    x: Math.cos(angle) * r,
+    z: Math.sin(angle) * r,
+  });
+  // Scale HP based on elapsed minutes
+  const m = world.time.elapsed / 60;
+  bear.hp = bearHp(m);
+  bear.hpMax = bear.hp;
+  return bear;
+}
+
 export function update(world, dt) {
+  // Spawn timer
+  if (typeof world.bearSpawnTimer !== 'number') world.bearSpawnTimer = bearSpawnPeriod(0);
+  world.bearSpawnTimer -= dt;
+  if (world.bearSpawnTimer <= 0) {
+    spawnBearFromOutside(world);
+    const m = world.time.elapsed / 60;
+    world.bearSpawnTimer = bearSpawnPeriod(m);
+  }
+
   for (const bear of world.bears) {
     if (bear.attackCD > 0) bear.attackCD -= dt;
 

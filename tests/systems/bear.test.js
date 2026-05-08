@@ -98,3 +98,24 @@ describe('bear AI — through', () => {
     expect(bear.state).toBe('attacking-player');
   });
 });
+
+import { spawnBearFromOutside } from '../../src/systems/bear.js';
+
+describe('bear spawning', () => {
+  it('spawnBearFromOutside places bear outside the fence radius', () => {
+    const w = createWorld();
+    const bear = spawnBearFromOutside(w);
+    const dist = Math.hypot(bear.pos.x, bear.pos.z);
+    expect(dist).toBeGreaterThan(w.base.radius);
+    expect(bear.state).toBe('approaching');
+  });
+
+  it('spawn timer decrements and triggers spawn on schedule', () => {
+    const w = createWorld();
+    w.bearSpawnTimer = 0.1;
+    updateBear(w, 0.05);
+    expect(w.bears).toHaveLength(0); // not yet
+    updateBear(w, 0.1); // crosses zero
+    expect(w.bears.length).toBeGreaterThanOrEqual(1);
+  });
+});
