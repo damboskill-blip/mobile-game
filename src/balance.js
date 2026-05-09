@@ -30,6 +30,7 @@ export const BALANCE = {
   fire: {
     capacity: 5,
     cookTimer: 2.0,
+    transferRange: 1.5,
   },
   meat: {
     despawn: 60,

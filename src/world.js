@@ -20,7 +20,7 @@ export function createWorld() {
     fence: { segments: createFenceSegments() },
     meatRaw: [],
     meatCooked: [],
-    fire: { pos: null, cooking: [], capacity: BALANCE.fire.capacity },
+    fire: { pos: { x: 3, z: -3 }, cooking: [], capacity: BALANCE.fire.capacity },
     register: { pos: null, counterStack: 0, moneyPiles: [] },
     customers: [],
     money: { pocket: 0 },
