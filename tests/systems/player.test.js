@@ -240,3 +240,41 @@ describe('player → fire transfer', () => {
     expect(w.fire.cooking[0].timer).toBe(BALANCE.fire.cookTimer);
   });
 });
+
+describe('player → counter transfer', () => {
+  it('transfers cooked stack onto counter when within transferRange', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.register.pos.x + 0.5, y: 0, z: w.register.pos.z };
+    w.player.stack = { raw: 0, cooked: 4 };
+    updatePlayer(w, 0.016);
+    expect(w.register.counterStack).toBe(4);
+    expect(w.player.stack.cooked).toBe(0);
+  });
+
+  it('does not transfer raw to counter', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.register.pos.x + 0.5, y: 0, z: w.register.pos.z };
+    w.player.stack = { raw: 4, cooked: 0 };
+    updatePlayer(w, 0.016);
+    expect(w.register.counterStack).toBe(0);
+    expect(w.player.stack.raw).toBe(4);
+  });
+
+  it('does not transfer outside transferRange', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.register.pos.x + 5, y: 0, z: w.register.pos.z };
+    w.player.stack = { raw: 0, cooked: 3 };
+    updatePlayer(w, 0.016);
+    expect(w.register.counterStack).toBe(0);
+    expect(w.player.stack.cooked).toBe(3);
+  });
+
+  it('counter has no max (accepts all cooked)', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.register.pos.x + 0.5, y: 0, z: w.register.pos.z };
+    w.player.stack = { raw: 0, cooked: 50 };
+    updatePlayer(w, 0.016);
+    expect(w.register.counterStack).toBe(50);
+    expect(w.player.stack.cooked).toBe(0);
+  });
+});
