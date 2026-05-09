@@ -5,7 +5,7 @@ import { BALANCE } from '../../src/balance.js';
 
 describe('customer spawn', () => {
   it('spawnCustomer adds customer at the spawn ring with entering state', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     const c = spawnCustomer(w);
     expect(w.customers).toHaveLength(1);
     expect(c.state).toBe('entering');
@@ -14,7 +14,7 @@ describe('customer spawn', () => {
   });
 
   it('does not spawn beyond queueMax', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     w.register.counterStack = 100;
     for (let i = 0; i < BALANCE.customer.queueMax; i++) spawnCustomer(w);
     w.customerSpawnTimer = 0;
@@ -23,7 +23,7 @@ describe('customer spawn', () => {
   });
 
   it('spawn timer triggers a spawn when counterStack > 0 OR queue under softMin', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     w.register.counterStack = 10;
     w.customerSpawnTimer = 0;
     updateCustomer(w, 0.016);
@@ -33,7 +33,7 @@ describe('customer spawn', () => {
 
 describe('customer AI', () => {
   it('entering customer walks toward queue slot', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     const c = spawnCustomer(w);
     const before = Math.hypot(c.pos.x - w.register.pos.x, c.pos.z - w.register.pos.z);
     updateCustomer(w, 0.5);
@@ -42,7 +42,7 @@ describe('customer AI', () => {
   });
 
   it('entering → queuing when at queue slot', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     const c = spawnCustomer(w);
     // Teleport close to queue slot
     c.pos = { x: w.register.pos.x + BALANCE.customer.queueOffset * 0.1, z: w.register.pos.z };
@@ -51,7 +51,7 @@ describe('customer AI', () => {
   });
 
   it('front-of-queue customer with stock enters buying state', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     const c = spawnCustomer(w);
     c.state = 'queuing';
     c.pos = { x: w.register.pos.x, z: w.register.pos.z };
@@ -62,7 +62,7 @@ describe('customer AI', () => {
   });
 
   it('buying completes after buyDuration: counterStack-- and money pile spawned', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     const c = spawnCustomer(w);
     c.state = 'buying';
     c.buyTimer = 0.05;
@@ -76,16 +76,17 @@ describe('customer AI', () => {
   });
 
   it('leaving customer walks toward spawn ring then despawns', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     const c = spawnCustomer(w);
     c.state = 'leaving';
     c.pos = { x: BALANCE.customer.spawnRingRadius - 0.1, z: 0 }; // already at the edge
+    w.customerSpawnTimer = 1000; // suppress auto-spawn during this step
     updateCustomer(w, 0.5);
     expect(w.customers).toHaveLength(0);
   });
 
   it('with cashier hired, customer.buyTimer is halved', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     w.employees.push({ id: 999, type: 'cashier', pos: { x: 0, z: 0 } });
     const c = spawnCustomer(w);
     c.state = 'queuing';

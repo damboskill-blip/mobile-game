@@ -76,7 +76,9 @@ export function update(world, dt) {
   if (typeof world.bearSpawnTimer !== 'number') world.bearSpawnTimer = bearSpawnPeriod(0);
   world.bearSpawnTimer -= dt;
   if (world.bearSpawnTimer <= 0) {
-    spawnBearFromOutside(world);
+    if (world.bears.length < BALANCE.bear.maxAlive) {
+      spawnBearFromOutside(world);
+    }
     const m = world.time.elapsed / 60;
     world.bearSpawnTimer = bearSpawnPeriod(m);
   }

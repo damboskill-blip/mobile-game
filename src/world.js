@@ -1,7 +1,7 @@
 import { BALANCE, BALANCE_VERSION } from './balance.js';
 
-export function createWorld() {
-  return {
+export function createWorld({ prefillCustomers = true } = {}) {
+  const world = {
     time: { elapsed: 0, dt: 0, frameCount: 0 },
     base: { center: { x: 0, z: 0 }, radius: BALANCE.base.radius },
     player: {
@@ -37,6 +37,37 @@ export function createWorld() {
     customerSpawnTimer: 0,
     premiumCustomerSpawnTimer: 0,
   };
+  if (prefillCustomers) prefillCustomerQueues(world);
+  return world;
+}
+
+function prefillCustomerQueues(world) {
+  for (let i = 0; i < BALANCE.customer.initialQueueRegular; i++) {
+    world.customers.push({
+      id: ++world.nextId,
+      pos: {
+        x: world.register.pos.x + BALANCE.customer.queueOffset * i,
+        z: world.register.pos.z,
+      },
+      rot: 0,
+      state: 'queuing',
+      buyTimer: 0,
+      spawnAngle: Math.random() * Math.PI * 2,
+    });
+  }
+  for (let i = 0; i < BALANCE.customer.initialQueuePremium; i++) {
+    world.premiumCustomers.push({
+      id: ++world.nextId,
+      pos: {
+        x: world.leatherCounter.pos.x + BALANCE.customer.queueOffset * (i + 1),
+        z: world.leatherCounter.pos.z,
+      },
+      rot: 0,
+      state: 'queuing',
+      buyTimer: 0,
+      spawnAngle: Math.random() * Math.PI * 2,
+    });
+  }
 }
 
 function createUpgradePads() {
