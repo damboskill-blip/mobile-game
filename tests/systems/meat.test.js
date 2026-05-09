@@ -28,8 +28,8 @@ describe('meat pickup', () => {
     dropMeatRaw(w, { x: 0.3, z: 0 });
     updateMeat(w, 0.016);
     expect(w.meatRaw).toHaveLength(0);
-    expect(w.player.stack.type).toBe('raw');
-    expect(w.player.stack.count).toBe(1);
+    expect(w.player.stack.raw).toBe(1);
+    expect(w.player.stack.cooked).toBe(0);
   });
 
   it('does not pick up meat outside pickupRadius', () => {
@@ -38,27 +38,24 @@ describe('meat pickup', () => {
     dropMeatRaw(w, { x: 5, z: 0 });
     updateMeat(w, 0.016);
     expect(w.meatRaw).toHaveLength(1);
-    expect(w.player.stack.count).toBe(0);
+    expect(w.player.stack.raw).toBe(0);
   });
 
-  it('stack respects max capacity', () => {
+  it('player can carry both raw and cooked simultaneously, no upper limit', () => {
     const w = createWorld();
     w.player.pos = { x: 0, y: 0, z: 0 };
-    w.player.stack = { type: 'raw', count: BALANCE.player.stack.max, max: BALANCE.player.stack.max };
-    dropMeatRaw(w, { x: 0.3, z: 0 });
+    // Drop 50 raw and 50 cooked all near player; pickup should accept all
+    for (let i = 0; i < 50; i++) {
+      dropMeatRaw(w, { x: 0.3, z: 0 });
+    }
+    for (let i = 0; i < 50; i++) {
+      w.meatCooked.push({ id: ++w.nextId, pos: { x: 0.3, z: 0 }, despawnTimer: 60 });
+    }
     updateMeat(w, 0.016);
-    expect(w.meatRaw).toHaveLength(1); // not picked up
-    expect(w.player.stack.count).toBe(BALANCE.player.stack.max);
-  });
-
-  it('does not pick up raw when carrying cooked', () => {
-    const w = createWorld();
-    w.player.pos = { x: 0, y: 0, z: 0 };
-    w.player.stack = { type: 'cooked', count: 2, max: BALANCE.player.stack.max };
-    dropMeatRaw(w, { x: 0.3, z: 0 });
-    updateMeat(w, 0.016);
-    expect(w.meatRaw).toHaveLength(1); // not picked up
-    expect(w.player.stack.type).toBe('cooked');
+    expect(w.meatRaw).toHaveLength(0);
+    expect(w.meatCooked).toHaveLength(0);
+    expect(w.player.stack.raw).toBe(50);
+    expect(w.player.stack.cooked).toBe(50);
   });
 
   it('does not pick up when player is dead', () => {

@@ -12,7 +12,7 @@ import { createFenceSegmentMesh, applyFenceSegmentTransform } from './render/fen
 import { createFireMesh, tickFireFlicker } from './render/fire-mesh.js';
 import { createBearMesh } from './render/bear-mesh.js';
 import { createMeatMesh } from './render/meat-mesh.js';
-import { createStackGroup, syncStackMesh } from './render/stack-mesh.js';
+import { createStackGroups, syncStackMesh } from './render/stack-mesh.js';
 import { createCamera, updateCamera, handleResize } from './camera.js';
 import { setupJoystick } from './input.js';
 import { setupHud } from './ui.js';
@@ -27,8 +27,9 @@ const camera = createCamera();
 
 // Player + back stack
 const playerMesh = createPlayerMesh();
-const stackGroup = createStackGroup();
-playerMesh.add(stackGroup);
+const stackGroups = createStackGroups();
+playerMesh.add(stackGroups.raw);
+playerMesh.add(stackGroups.cooked);
 scene.add(playerMesh);
 
 // Fence — one mesh per segment, indexed by segment id
@@ -93,7 +94,7 @@ function render(world) {
   } else {
     playerMesh.visible = false;
   }
-  syncStackMesh(stackGroup, world.player.stack);
+  syncStackMesh(stackGroups, world.player.stack);
 
   // Fence
   for (const seg of world.fence.segments) {

@@ -13,7 +13,7 @@ export function createWorld() {
       respawnTimer: 0,
       speed: BALANCE.player.speed,
       axe: { ...BALANCE.player.axe, cooldownTimer: 0 },
-      stack: { type: null, count: 0, max: BALANCE.player.stack.max },
+      stack: { raw: 0, cooked: 0 },
       input: { move: { x: 0, z: 0 } },
     },
     bears: [],

@@ -4,35 +4,37 @@ import { BALANCE } from '../balance.js';
 function tryTransferStackToFire(world) {
   const p = world.player;
   if (!world.fire.pos) return;
-  if (p.stack.type !== 'raw' || p.stack.count <= 0) return;
+  if (p.stack.raw <= 0) return;
   const dx = world.fire.pos.x - p.pos.x;
   const dz = world.fire.pos.z - p.pos.z;
   if (Math.hypot(dx, dz) > BALANCE.fire.transferRange) return;
   const slotsFree = world.fire.capacity - world.fire.cooking.length;
-  const toTransfer = Math.min(slotsFree, p.stack.count);
+  const toTransfer = Math.min(slotsFree, p.stack.raw);
   for (let i = 0; i < toTransfer; i++) {
     world.fire.cooking.push({ id: ++world.nextId, timer: BALANCE.fire.cookTimer });
   }
-  p.stack.count -= toTransfer;
-  if (p.stack.count === 0) p.stack.type = null;
+  p.stack.raw -= toTransfer;
 }
 
 function dropStack(world) {
   const p = world.player;
-  if (p.stack.count <= 0 || p.stack.type === null) return;
-  const arr = p.stack.type === 'raw' ? world.meatRaw : world.meatCooked;
-  for (let i = 0; i < p.stack.count; i++) {
-    const angle = (i / p.stack.count) * Math.PI * 2;
+  const total = p.stack.raw + p.stack.cooked;
+  if (total <= 0) return;
+  let i = 0;
+  function dropPiece(arr) {
+    const angle = (i / total) * Math.PI * 2;
     const r = 0.5;
-    const piece = {
+    arr.push({
       id: ++world.nextId,
       pos: { x: p.pos.x + Math.cos(angle) * r, z: p.pos.z + Math.sin(angle) * r },
       despawnTimer: BALANCE.meat.despawn,
-    };
-    arr.push(piece);
+    });
+    i++;
   }
-  p.stack.count = 0;
-  p.stack.type = null;
+  for (let j = 0; j < p.stack.raw; j++) dropPiece(world.meatRaw);
+  for (let j = 0; j < p.stack.cooked; j++) dropPiece(world.meatCooked);
+  p.stack.raw = 0;
+  p.stack.cooked = 0;
 }
 
 export function update(world, dt) {

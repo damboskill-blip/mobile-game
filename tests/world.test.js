@@ -21,7 +21,7 @@ describe('createWorld', () => {
     expect(w.player.hpMax).toBe(BALANCE.player.hpMax);
     expect(w.player.state).toBe('alive');
     expect(w.player.respawnTimer).toBe(0);
-    expect(w.player.stack).toEqual({ type: null, count: 0, max: BALANCE.player.stack.max });
+    expect(w.player.stack).toEqual({ raw: 0, cooked: 0 });
     expect(w.player.input).toEqual({ move: { x: 0, z: 0 } });
   });
 

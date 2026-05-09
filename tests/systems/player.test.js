@@ -111,21 +111,32 @@ describe('player death and respawn', () => {
     const w = createWorld();
     w.player.hp = 0;
     w.player.pos = { x: 5, y: 0, z: 5 };
-    w.player.stack = { type: 'raw', count: 3, max: BALANCE.player.stack.max };
-    const droppedBefore = w.meatRaw.length;
+    w.player.stack = { raw: 3, cooked: 0 };
     updatePlayer(w, 0.016);
-    expect(w.meatRaw.length).toBe(droppedBefore + 3);
-    expect(w.player.stack.count).toBe(0);
-    expect(w.player.stack.type).toBe(null);
+    expect(w.meatRaw.length).toBe(3);
+    expect(w.player.stack.raw).toBe(0);
+    expect(w.player.stack.cooked).toBe(0);
   });
 
   it('drops carried cooked meat as cooked', () => {
     const w = createWorld();
     w.player.hp = 0;
     w.player.pos = { x: 0, y: 0, z: 0 };
-    w.player.stack = { type: 'cooked', count: 2, max: BALANCE.player.stack.max };
+    w.player.stack = { raw: 0, cooked: 2 };
     updatePlayer(w, 0.016);
     expect(w.meatCooked.length).toBe(2);
+  });
+
+  it('drops both raw and cooked when carrying mixed stack', () => {
+    const w = createWorld();
+    w.player.hp = 0;
+    w.player.pos = { x: 0, y: 0, z: 0 };
+    w.player.stack = { raw: 4, cooked: 3 };
+    updatePlayer(w, 0.016);
+    expect(w.meatRaw.length).toBe(4);
+    expect(w.meatCooked.length).toBe(3);
+    expect(w.player.stack.raw).toBe(0);
+    expect(w.player.stack.cooked).toBe(0);
   });
 
   it('respawn timer counts down while dead', () => {
@@ -185,50 +196,46 @@ describe('player → fire transfer', () => {
   it('transfers raw stack onto fire.cooking when within transferRange', () => {
     const w = createWorld();
     w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
-    w.player.stack = { type: 'raw', count: 3, max: BALANCE.player.stack.max };
+    w.player.stack = { raw: 3, cooked: 0 };
     updatePlayer(w, 0.016);
-    // Up to fire.capacity pieces transfer (3 raw → fits in capacity 5)
     expect(w.fire.cooking).toHaveLength(3);
-    expect(w.player.stack.count).toBe(0);
-    expect(w.player.stack.type).toBeNull();
+    expect(w.player.stack.raw).toBe(0);
   });
 
   it('transfers only what fits in fire capacity, leaving remainder in stack', () => {
     const w = createWorld();
     w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
-    w.player.stack = { type: 'raw', count: 8, max: BALANCE.player.stack.max };
-    // Pre-fill fire to leave only 2 capacity slots
+    w.player.stack = { raw: 8, cooked: 0 };
     for (let i = 0; i < 3; i++) {
       w.fire.cooking.push({ id: ++w.nextId, timer: BALANCE.fire.cookTimer });
     }
     updatePlayer(w, 0.016);
-    expect(w.fire.cooking).toHaveLength(BALANCE.fire.capacity); // full
-    expect(w.player.stack.count).toBe(8 - (BALANCE.fire.capacity - 3));
-    expect(w.player.stack.type).toBe('raw'); // still has raw left
+    expect(w.fire.cooking).toHaveLength(BALANCE.fire.capacity);
+    expect(w.player.stack.raw).toBe(8 - (BALANCE.fire.capacity - 3));
   });
 
   it('does not transfer cooked meat to fire', () => {
     const w = createWorld();
     w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
-    w.player.stack = { type: 'cooked', count: 3, max: BALANCE.player.stack.max };
+    w.player.stack = { raw: 0, cooked: 3 };
     updatePlayer(w, 0.016);
     expect(w.fire.cooking).toHaveLength(0);
-    expect(w.player.stack.count).toBe(3);
+    expect(w.player.stack.cooked).toBe(3);
   });
 
   it('does not transfer when player is outside transferRange', () => {
     const w = createWorld();
     w.player.pos = { x: w.fire.pos.x + 5, y: 0, z: w.fire.pos.z };
-    w.player.stack = { type: 'raw', count: 2, max: BALANCE.player.stack.max };
+    w.player.stack = { raw: 2, cooked: 0 };
     updatePlayer(w, 0.016);
     expect(w.fire.cooking).toHaveLength(0);
-    expect(w.player.stack.count).toBe(2);
+    expect(w.player.stack.raw).toBe(2);
   });
 
   it('newly-transferred pieces start with full cookTimer', () => {
     const w = createWorld();
     w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
-    w.player.stack = { type: 'raw', count: 1, max: BALANCE.player.stack.max };
+    w.player.stack = { raw: 1, cooked: 0 };
     updatePlayer(w, 0.016);
     expect(w.fire.cooking[0].timer).toBe(BALANCE.fire.cookTimer);
   });

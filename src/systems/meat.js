@@ -32,9 +32,7 @@ function tryPickup(world, piece, type) {
   if (p.state !== 'alive') return false;
   const d = Math.hypot(piece.pos.x - p.pos.x, piece.pos.z - p.pos.z);
   if (d > BALANCE.player.pickupRadius) return false;
-  if (p.stack.count >= p.stack.max) return false;
-  if (p.stack.type !== null && p.stack.type !== type) return false;
-  p.stack.type = type;
-  p.stack.count++;
+  if (type === 'raw') p.stack.raw++;
+  else p.stack.cooked++;
   return true;
 }
