@@ -45,13 +45,13 @@ describe('createWorld', () => {
     expect(Math.hypot(dxFromFire, dzFromFire)).toBeGreaterThan(3);
   });
 
-  it('upgrade pads are pre-placed: 3 pads with correct types', () => {
+  it('upgrade pads are pre-placed: 4 pad types with correct shape', () => {
     const w = createWorld();
     const types = w.upgradePads.map(p => p.type).sort();
-    expect(types).toEqual(['hire-cashier', 'hire-cook', 'repair-fence']);
+    expect(types).toEqual(['hire-cashier', 'hire-cook', 'hire-porter', 'hire-repairman']);
     for (const p of w.upgradePads) {
       expect(p.deposited).toBe(0);
-      expect(p.completed).toBe(false);
+      expect(p.hireCount).toBe(0);
       expect(typeof p.cost).toBe('number');
       expect(p.cost).toBeGreaterThan(0);
     }

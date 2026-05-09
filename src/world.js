@@ -35,28 +35,36 @@ export function createWorld() {
 function createUpgradePads() {
   return [
     {
-      id: -1, type: 'repair-fence',
-      pos: { x: 0, z: 8 },
-      cost: BALANCE.pads.repairFenceCost,
-      deposited: 0,
-      completed: false,
-      multiUse: true,
-    },
-    {
-      id: -2, type: 'hire-cook',
+      id: -1, type: 'hire-cook',
       pos: { x: 5, z: -3 },
-      cost: BALANCE.pads.hireCookCost,
+      baseCost: BALANCE.pads.hireCookCost,
+      hireCount: 0,
       deposited: 0,
-      completed: false,
-      multiUse: false,
+      cost: BALANCE.pads.hireCookCost,
     },
     {
-      id: -3, type: 'hire-cashier',
+      id: -2, type: 'hire-cashier',
       pos: { x: -5, z: 3 },
-      cost: BALANCE.pads.hireCashierCost,
+      baseCost: BALANCE.pads.hireCashierCost,
+      hireCount: 0,
       deposited: 0,
-      completed: false,
-      multiUse: false,
+      cost: BALANCE.pads.hireCashierCost,
+    },
+    {
+      id: -3, type: 'hire-porter',
+      pos: { x: 3, z: 7 },
+      baseCost: BALANCE.pads.hirePorterBaseCost,
+      hireCount: 0,
+      deposited: 0,
+      cost: BALANCE.pads.hirePorterBaseCost,
+    },
+    {
+      id: -4, type: 'hire-repairman',
+      pos: { x: -3, z: 7 },
+      baseCost: BALANCE.pads.hireRepairmanBaseCost,
+      hireCount: 0,
+      deposited: 0,
+      cost: BALANCE.pads.hireRepairmanBaseCost,
     },
   ];
 }
@@ -92,7 +100,7 @@ export function saveWorld(world, storage = globalThis.localStorage) {
     },
     time: { elapsed: world.time.elapsed },
     upgradePads: world.upgradePads.map(p => ({
-      id: p.id, type: p.type, deposited: p.deposited, completed: p.completed,
+      id: p.id, type: p.type, deposited: p.deposited, hireCount: p.hireCount,
     })),
     employees: world.employees.map(e => ({ id: e.id, type: e.type })),
   };

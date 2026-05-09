@@ -38,9 +38,10 @@ export function setupHud(container = document.body) {
 }
 
 const PAD_TEXT = {
-  'repair-fence': '🔨 Repair fence',
-  'hire-cook': '🍳 Hire cook',
-  'hire-cashier': '💼 Hire cashier',
+  'hire-cook': '🍳 Cook',
+  'hire-cashier': '💼 Cashier',
+  'hire-porter': '📦 Porter',
+  'hire-repairman': '🔧 Repairman',
 };
 
 export function setupPadLabels(container = document.body) {

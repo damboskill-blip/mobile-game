@@ -54,6 +54,17 @@ export const BALANCE = {
     hireCashierCost: 500,
     depositRate: 100,
     zoneRadius: 0.8,
+    hireMultiplier: 1.7,        // each subsequent hire of same type costs 1.7x previous
+    hirePorterBaseCost: 400,
+    hireRepairmanBaseCost: 300,
+  },
+  worker: {
+    porterSpeed: 4.5,
+    porterStackMax: 5,
+    porterPickupRadius: 0.8,
+    repairmanSpeed: 4.0,
+    repairmanRate: 25,             // hp restored per second when adjacent to fence
+    repairmanReachRadius: 1.2,
   },
 };
 
@@ -68,4 +79,8 @@ export function bearHp(m) {
 
 export function bearDamageFence(m) {
   return Math.max(BALANCE.bear.damageFenceBase, Math.min(12, BALANCE.bear.damageFenceBase + 0.5 * m));
+}
+
+export function nextHireCost(baseCost, hireCount) {
+  return Math.round(baseCost * Math.pow(BALANCE.pads.hireMultiplier, hireCount));
 }
