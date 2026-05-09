@@ -149,3 +149,34 @@ describe('player death and respawn', () => {
     expect(w.player.pos).toEqual({ x: 0, y: 0, z: 0 });
   });
 });
+
+describe('player hp regen', () => {
+  it('regenerates hp when alive and below max', () => {
+    const w = createWorld();
+    w.player.hp = 50;
+    updatePlayer(w, 1.0);
+    expect(w.player.hp).toBeCloseTo(50 + BALANCE.player.regenRate, 5);
+  });
+
+  it('does not regen above hpMax', () => {
+    const w = createWorld();
+    w.player.hp = w.player.hpMax - 1;
+    updatePlayer(w, 10.0); // would add 100, but capped
+    expect(w.player.hp).toBe(w.player.hpMax);
+  });
+
+  it('does not regen while dead', () => {
+    const w = createWorld();
+    w.player.state = 'dead';
+    w.player.respawnTimer = 5; // prevent respawn during this test
+    w.player.hp = 0;
+    updatePlayer(w, 1.0);
+    expect(w.player.hp).toBe(0);
+  });
+});
+
+describe('balance regenRate', () => {
+  it('regenRate is positive', () => {
+    expect(BALANCE.player.regenRate).toBeGreaterThan(0);
+  });
+});

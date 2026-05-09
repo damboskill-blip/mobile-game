@@ -55,6 +55,11 @@ export function update(world, dt) {
     p.rot = Math.atan2(mx, mz);
   }
 
+  // HP regen — only while alive (the dead/respawn branch already returned early above)
+  if (p.hp < p.hpMax) {
+    p.hp = Math.min(p.hpMax, p.hp + BALANCE.player.regenRate * dt);
+  }
+
   // Auto-attack
   if (p.axe.cooldownTimer > 0) p.axe.cooldownTimer -= dt;
   if (p.axe.cooldownTimer <= 0) {
