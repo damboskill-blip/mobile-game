@@ -45,6 +45,18 @@ describe('createWorld', () => {
     expect(Math.hypot(dxFromFire, dzFromFire)).toBeGreaterThan(3);
   });
 
+  it('upgrade pads are pre-placed: 3 pads with correct types', () => {
+    const w = createWorld();
+    const types = w.upgradePads.map(p => p.type).sort();
+    expect(types).toEqual(['hire-cashier', 'hire-cook', 'repair-fence']);
+    for (const p of w.upgradePads) {
+      expect(p.deposited).toBe(0);
+      expect(p.completed).toBe(false);
+      expect(typeof p.cost).toBe('number');
+      expect(p.cost).toBeGreaterThan(0);
+    }
+  });
+
   it('customerSpawnTimer initialized to 0', () => {
     const w = createWorld();
     expect(w.customerSpawnTimer).toBe(0);

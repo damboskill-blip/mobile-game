@@ -52,6 +52,7 @@ export const BALANCE = {
     hireCookCost: 500,
     hireCashierCost: 800,
     depositRate: 50,
+    zoneRadius: 0.8,
   },
 };
 

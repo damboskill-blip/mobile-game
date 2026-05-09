@@ -24,12 +24,41 @@ export function createWorld() {
     register: { pos: { x: -3, z: 3 }, counterStack: 0, moneyPiles: [] },
     customers: [],
     money: { pocket: 0 },
-    upgradePads: [],
+    upgradePads: createUpgradePads(),
     employees: [],
     nextId: 0,
     playerDamageCD: 0,
     customerSpawnTimer: 0,
   };
+}
+
+function createUpgradePads() {
+  return [
+    {
+      id: -1, type: 'repair-fence',
+      pos: { x: 0, z: 8 },
+      cost: BALANCE.pads.repairFenceCost,
+      deposited: 0,
+      completed: false,
+      multiUse: true,
+    },
+    {
+      id: -2, type: 'hire-cook',
+      pos: { x: 5, z: -3 },
+      cost: BALANCE.pads.hireCookCost,
+      deposited: 0,
+      completed: false,
+      multiUse: false,
+    },
+    {
+      id: -3, type: 'hire-cashier',
+      pos: { x: -5, z: 3 },
+      cost: BALANCE.pads.hireCashierCost,
+      deposited: 0,
+      completed: false,
+      multiUse: false,
+    },
+  ];
 }
 
 function createFenceSegments() {
