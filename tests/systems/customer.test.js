@@ -83,4 +83,16 @@ describe('customer AI', () => {
     updateCustomer(w, 0.5);
     expect(w.customers).toHaveLength(0);
   });
+
+  it('with cashier hired, customer.buyTimer is halved', () => {
+    const w = createWorld();
+    w.employees.push({ id: 999, type: 'cashier', pos: { x: 0, z: 0 } });
+    const c = spawnCustomer(w);
+    c.state = 'queuing';
+    c.pos = { x: w.register.pos.x, z: w.register.pos.z };
+    w.register.counterStack = 5;
+    updateCustomer(w, 0.016);
+    expect(c.state).toBe('buying');
+    expect(c.buyTimer).toBeCloseTo(BALANCE.customer.buyDuration / 2, 5);
+  });
 });
