@@ -3,11 +3,13 @@ import { createWorld, saveWorld, loadWorld } from './world.js';
 import { update as updatePlayer } from './systems/player.js';
 import { update as updateBear } from './systems/bear.js';
 import { update as updateFence } from './systems/fence.js';
+import { update as updateFire } from './systems/fire.js';
 import { update as updateMeat } from './systems/meat.js';
 import { startLoop } from './loop.js';
 import { createScene, createRenderer } from './render/scene.js';
 import { createPlayerMesh } from './render/meshes.js';
 import { createFenceSegmentMesh, applyFenceSegmentTransform } from './render/fence-mesh.js';
+import { createFireMesh, tickFireFlicker } from './render/fire-mesh.js';
 import { createBearMesh } from './render/bear-mesh.js';
 import { createMeatMesh } from './render/meat-mesh.js';
 import { createStackGroup, syncStackMesh } from './render/stack-mesh.js';
@@ -38,6 +40,11 @@ for (const seg of world.fence.segments) {
   fenceMeshes.set(seg.id, mesh);
 }
 
+// Fire mesh
+const fireMesh = createFireMesh();
+fireMesh.position.set(world.fire.pos.x, 0, world.fire.pos.z);
+scene.add(fireMesh);
+
 // Bears + meat — managed dynamically each frame
 const bearMeshes = new Map();
 const meatMeshes = new Map();
@@ -53,7 +60,7 @@ function autoSave(world) {
   if (saveTimer >= 5) { saveWorld(world); saveTimer = 0; }
 }
 
-const systems = [updateBear, updateFence, updatePlayer, updateMeat];
+const systems = [updateBear, updateFence, updateFire, updatePlayer, updateMeat];
 
 function syncEntityMeshes(entityArray, meshMap, scene, factory) {
   // Remove meshes for entities no longer present
@@ -102,6 +109,7 @@ function render(world) {
   syncEntityMeshes(world.meatCooked, meatMeshes, scene, () => createMeatMesh('cooked'));
 
   updateCamera(camera, world, world.time.dt);
+  tickFireFlicker(fireMesh, world.time.elapsed);
   hud.update(world);
   renderer.render(scene, camera);
 }

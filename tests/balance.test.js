@@ -23,6 +23,10 @@ describe('balance', () => {
     expect(BALANCE.bear.attackRange).toBeGreaterThan(0);
     expect(BALANCE.fence.attackRange).toBeGreaterThan(0);
   });
+
+  it('fire.transferRange is positive', () => {
+    expect(BALANCE.fire.transferRange).toBeGreaterThan(0);
+  });
 });
 
 describe('difficulty scaling', () => {

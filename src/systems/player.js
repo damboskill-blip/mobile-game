@@ -1,6 +1,22 @@
 import { killBear } from '../world.js';
 import { BALANCE } from '../balance.js';
 
+function tryTransferStackToFire(world) {
+  const p = world.player;
+  if (!world.fire.pos) return;
+  if (p.stack.type !== 'raw' || p.stack.count <= 0) return;
+  const dx = world.fire.pos.x - p.pos.x;
+  const dz = world.fire.pos.z - p.pos.z;
+  if (Math.hypot(dx, dz) > BALANCE.fire.transferRange) return;
+  const slotsFree = world.fire.capacity - world.fire.cooking.length;
+  const toTransfer = Math.min(slotsFree, p.stack.count);
+  for (let i = 0; i < toTransfer; i++) {
+    world.fire.cooking.push({ id: ++world.nextId, timer: BALANCE.fire.cookTimer });
+  }
+  p.stack.count -= toTransfer;
+  if (p.stack.count === 0) p.stack.type = null;
+}
+
 function dropStack(world) {
   const p = world.player;
   if (p.stack.count <= 0 || p.stack.type === null) return;
@@ -59,6 +75,9 @@ export function update(world, dt) {
   if (p.hp < p.hpMax) {
     p.hp = Math.min(p.hpMax, p.hp + BALANCE.player.regenRate * dt);
   }
+
+  // Try to deposit raw stack onto fire
+  tryTransferStackToFire(world);
 
   // Auto-attack
   if (p.axe.cooldownTimer > 0) p.axe.cooldownTimer -= dt;

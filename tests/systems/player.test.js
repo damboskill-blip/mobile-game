@@ -180,3 +180,56 @@ describe('balance regenRate', () => {
     expect(BALANCE.player.regenRate).toBeGreaterThan(0);
   });
 });
+
+describe('player → fire transfer', () => {
+  it('transfers raw stack onto fire.cooking when within transferRange', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
+    w.player.stack = { type: 'raw', count: 3, max: BALANCE.player.stack.max };
+    updatePlayer(w, 0.016);
+    // Up to fire.capacity pieces transfer (3 raw → fits in capacity 5)
+    expect(w.fire.cooking).toHaveLength(3);
+    expect(w.player.stack.count).toBe(0);
+    expect(w.player.stack.type).toBeNull();
+  });
+
+  it('transfers only what fits in fire capacity, leaving remainder in stack', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
+    w.player.stack = { type: 'raw', count: 8, max: BALANCE.player.stack.max };
+    // Pre-fill fire to leave only 2 capacity slots
+    for (let i = 0; i < 3; i++) {
+      w.fire.cooking.push({ id: ++w.nextId, timer: BALANCE.fire.cookTimer });
+    }
+    updatePlayer(w, 0.016);
+    expect(w.fire.cooking).toHaveLength(BALANCE.fire.capacity); // full
+    expect(w.player.stack.count).toBe(8 - (BALANCE.fire.capacity - 3));
+    expect(w.player.stack.type).toBe('raw'); // still has raw left
+  });
+
+  it('does not transfer cooked meat to fire', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
+    w.player.stack = { type: 'cooked', count: 3, max: BALANCE.player.stack.max };
+    updatePlayer(w, 0.016);
+    expect(w.fire.cooking).toHaveLength(0);
+    expect(w.player.stack.count).toBe(3);
+  });
+
+  it('does not transfer when player is outside transferRange', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.fire.pos.x + 5, y: 0, z: w.fire.pos.z };
+    w.player.stack = { type: 'raw', count: 2, max: BALANCE.player.stack.max };
+    updatePlayer(w, 0.016);
+    expect(w.fire.cooking).toHaveLength(0);
+    expect(w.player.stack.count).toBe(2);
+  });
+
+  it('newly-transferred pieces start with full cookTimer', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
+    w.player.stack = { type: 'raw', count: 1, max: BALANCE.player.stack.max };
+    updatePlayer(w, 0.016);
+    expect(w.fire.cooking[0].timer).toBe(BALANCE.fire.cookTimer);
+  });
+});

@@ -34,6 +34,15 @@ describe('createWorld', () => {
     expect(w.employees).toEqual([]);
   });
 
+  it('fire is placed at a valid position inside the base', () => {
+    const w = createWorld();
+    expect(w.fire.pos).not.toBeNull();
+    expect(typeof w.fire.pos.x).toBe('number');
+    expect(typeof w.fire.pos.z).toBe('number');
+    const distFromCenter = Math.hypot(w.fire.pos.x, w.fire.pos.z);
+    expect(distFromCenter).toBeLessThan(w.base.radius);
+  });
+
   it('fence has 16 segments equally spaced', () => {
     const w = createWorld();
     expect(w.fence.segments).toHaveLength(BALANCE.fence.segments);
