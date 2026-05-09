@@ -111,7 +111,7 @@ describe('player death and respawn', () => {
     const w = createWorld();
     w.player.hp = 0;
     w.player.pos = { x: 5, y: 0, z: 5 };
-    w.player.stack = { raw: 3, cooked: 0 };
+    w.player.stack = { raw: 3, cooked: 0, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
     expect(w.meatRaw.length).toBe(3);
     expect(w.player.stack.raw).toBe(0);
@@ -122,7 +122,7 @@ describe('player death and respawn', () => {
     const w = createWorld();
     w.player.hp = 0;
     w.player.pos = { x: 0, y: 0, z: 0 };
-    w.player.stack = { raw: 0, cooked: 2 };
+    w.player.stack = { raw: 0, cooked: 2, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
     expect(w.meatCooked.length).toBe(2);
   });
@@ -131,12 +131,24 @@ describe('player death and respawn', () => {
     const w = createWorld();
     w.player.hp = 0;
     w.player.pos = { x: 0, y: 0, z: 0 };
-    w.player.stack = { raw: 4, cooked: 3 };
+    w.player.stack = { raw: 4, cooked: 3, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
     expect(w.meatRaw.length).toBe(4);
     expect(w.meatCooked.length).toBe(3);
     expect(w.player.stack.raw).toBe(0);
     expect(w.player.stack.cooked).toBe(0);
+  });
+
+  it('drops pelts and leather on death', () => {
+    const w = createWorld();
+    w.player.hp = 0;
+    w.player.pos = { x: 0, y: 0, z: 0 };
+    w.player.stack = { raw: 0, cooked: 0, pelt: 2, leather: 1 };
+    updatePlayer(w, 0.016);
+    expect(w.pelts.length).toBe(2);
+    expect(w.leather.length).toBe(1);
+    expect(w.player.stack.pelt).toBe(0);
+    expect(w.player.stack.leather).toBe(0);
   });
 
   it('respawn timer counts down while dead', () => {
@@ -196,7 +208,7 @@ describe('player → fire transfer', () => {
   it('transfers raw stack onto fire.cooking when within transferRange', () => {
     const w = createWorld();
     w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
-    w.player.stack = { raw: 3, cooked: 0 };
+    w.player.stack = { raw: 3, cooked: 0, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
     expect(w.fire.cooking).toHaveLength(3);
     expect(w.player.stack.raw).toBe(0);
@@ -205,7 +217,7 @@ describe('player → fire transfer', () => {
   it('transfers only what fits in fire capacity, leaving remainder in stack', () => {
     const w = createWorld();
     w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
-    w.player.stack = { raw: 8, cooked: 0 };
+    w.player.stack = { raw: 8, cooked: 0, pelt: 0, leather: 0 };
     for (let i = 0; i < 3; i++) {
       w.fire.cooking.push({ id: ++w.nextId, timer: BALANCE.fire.cookTimer });
     }
@@ -217,7 +229,7 @@ describe('player → fire transfer', () => {
   it('does not transfer cooked meat to fire', () => {
     const w = createWorld();
     w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
-    w.player.stack = { raw: 0, cooked: 3 };
+    w.player.stack = { raw: 0, cooked: 3, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
     expect(w.fire.cooking).toHaveLength(0);
     expect(w.player.stack.cooked).toBe(3);
@@ -226,7 +238,7 @@ describe('player → fire transfer', () => {
   it('does not transfer when player is outside transferRange', () => {
     const w = createWorld();
     w.player.pos = { x: w.fire.pos.x + 5, y: 0, z: w.fire.pos.z };
-    w.player.stack = { raw: 2, cooked: 0 };
+    w.player.stack = { raw: 2, cooked: 0, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
     expect(w.fire.cooking).toHaveLength(0);
     expect(w.player.stack.raw).toBe(2);
@@ -235,7 +247,7 @@ describe('player → fire transfer', () => {
   it('newly-transferred pieces start with full cookTimer', () => {
     const w = createWorld();
     w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
-    w.player.stack = { raw: 1, cooked: 0 };
+    w.player.stack = { raw: 1, cooked: 0, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
     expect(w.fire.cooking[0].timer).toBe(BALANCE.fire.cookTimer);
   });
@@ -245,7 +257,7 @@ describe('player → counter transfer', () => {
   it('transfers cooked stack onto counter when within transferRange', () => {
     const w = createWorld();
     w.player.pos = { x: w.register.pos.x + 0.5, y: 0, z: w.register.pos.z };
-    w.player.stack = { raw: 0, cooked: 4 };
+    w.player.stack = { raw: 0, cooked: 4, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
     expect(w.register.counterStack).toBe(4);
     expect(w.player.stack.cooked).toBe(0);
@@ -254,7 +266,7 @@ describe('player → counter transfer', () => {
   it('does not transfer raw to counter', () => {
     const w = createWorld();
     w.player.pos = { x: w.register.pos.x + 0.5, y: 0, z: w.register.pos.z };
-    w.player.stack = { raw: 4, cooked: 0 };
+    w.player.stack = { raw: 4, cooked: 0, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
     expect(w.register.counterStack).toBe(0);
     expect(w.player.stack.raw).toBe(4);
@@ -263,7 +275,7 @@ describe('player → counter transfer', () => {
   it('does not transfer outside transferRange', () => {
     const w = createWorld();
     w.player.pos = { x: w.register.pos.x + 5, y: 0, z: w.register.pos.z };
-    w.player.stack = { raw: 0, cooked: 3 };
+    w.player.stack = { raw: 0, cooked: 3, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
     expect(w.register.counterStack).toBe(0);
     expect(w.player.stack.cooked).toBe(3);
@@ -272,9 +284,62 @@ describe('player → counter transfer', () => {
   it('counter has no max (accepts all cooked)', () => {
     const w = createWorld();
     w.player.pos = { x: w.register.pos.x + 0.5, y: 0, z: w.register.pos.z };
-    w.player.stack = { raw: 0, cooked: 50 };
+    w.player.stack = { raw: 0, cooked: 50, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
     expect(w.register.counterStack).toBe(50);
     expect(w.player.stack.cooked).toBe(0);
+  });
+});
+
+describe('player → tannery transfer', () => {
+  it('transfers pelt stack into tannery.processing when within transferRange', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.tannery.pos.x + 0.5, y: 0, z: w.tannery.pos.z };
+    w.player.stack = { raw: 0, cooked: 0, pelt: 3, leather: 0 };
+    updatePlayer(w, 0.016);
+    expect(w.tannery.processing).toHaveLength(3);
+    expect(w.player.stack.pelt).toBe(0);
+  });
+
+  it('does not transfer when player is outside transferRange', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.tannery.pos.x + 5, y: 0, z: w.tannery.pos.z };
+    w.player.stack = { raw: 0, cooked: 0, pelt: 2, leather: 0 };
+    updatePlayer(w, 0.016);
+    expect(w.tannery.processing).toHaveLength(0);
+    expect(w.player.stack.pelt).toBe(2);
+  });
+
+  it('respects tannery capacity', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.tannery.pos.x + 0.5, y: 0, z: w.tannery.pos.z };
+    w.player.stack = { raw: 0, cooked: 0, pelt: 8, leather: 0 };
+    // Fill tannery most of the way
+    for (let i = 0; i < 3; i++) {
+      w.tannery.processing.push({ id: ++w.nextId, timer: 3.5 });
+    }
+    updatePlayer(w, 0.016);
+    expect(w.tannery.processing).toHaveLength(w.tannery.capacity);
+    expect(w.player.stack.pelt).toBe(8 - (w.tannery.capacity - 3));
+  });
+});
+
+describe('player → leather counter transfer', () => {
+  it('transfers leather stack onto leather counter when within transferRange', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.leatherCounter.pos.x + 0.5, y: 0, z: w.leatherCounter.pos.z };
+    w.player.stack = { raw: 0, cooked: 0, pelt: 0, leather: 4 };
+    updatePlayer(w, 0.016);
+    expect(w.leatherCounter.counterStack).toBe(4);
+    expect(w.player.stack.leather).toBe(0);
+  });
+
+  it('does not transfer when player is outside transferRange', () => {
+    const w = createWorld();
+    w.player.pos = { x: w.leatherCounter.pos.x + 5, y: 0, z: w.leatherCounter.pos.z };
+    w.player.stack = { raw: 0, cooked: 0, pelt: 0, leather: 3 };
+    updatePlayer(w, 0.016);
+    expect(w.leatherCounter.counterStack).toBe(0);
+    expect(w.player.stack.leather).toBe(3);
   });
 });

@@ -47,6 +47,9 @@ export const BALANCE = {
     queueMax: 5,
     queueOffset: 1.2,
     spawnRingRadius: 16,
+    premiumPricePerLeather: 40,
+    premiumSpawnInterval: 3.0,
+    premiumSpawnRingRadius: 16,
   },
   pads: {
     repairFenceCost: 100,
@@ -54,6 +57,36 @@ export const BALANCE = {
     hireCashierCost: 500,
     depositRate: 100,
     zoneRadius: 0.8,
+    hireMultiplier: 1.7,        // each subsequent hire of same type costs 1.7x previous
+    hirePorterBaseCost: 400,
+    hireRepairmanBaseCost: 300,
+    buildTowerBaseCost: 1200,
+    hireTannerBaseCost: 600,
+  },
+  tannery: {
+    capacity: 5,
+    tanTime: 3.5,           // longer than meat cookTimer for balance
+    transferRange: 1.5,
+  },
+  leatherCounter: {
+    transferRange: 1.5,
+  },
+  tower: {
+    levels: [
+      { damage: 25, range: 8, fireCD: 1.5 },
+      { damage: 40, range: 9, fireCD: 1.2 },
+      { damage: 60, range: 10, fireCD: 0.8 },
+    ],
+  },
+  worker: {
+    porterSpeed: 4.5,
+    porterStackMax: 5,
+    porterPickupRadius: 0.8,
+    repairmanSpeed: 4.0,
+    repairmanRate: 25,             // hp restored per second when adjacent to fence
+    repairmanReachRadius: 1.2,
+    tannerSpeed: 4.5,
+    tannerStackMax: 5,
   },
 };
 
@@ -68,4 +101,8 @@ export function bearHp(m) {
 
 export function bearDamageFence(m) {
   return Math.max(BALANCE.bear.damageFenceBase, Math.min(12, BALANCE.bear.damageFenceBase + 0.5 * m));
+}
+
+export function nextHireCost(baseCost, hireCount) {
+  return Math.round(baseCost * Math.pow(BALANCE.pads.hireMultiplier, hireCount));
 }

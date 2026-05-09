@@ -13,50 +13,75 @@ export function createWorld() {
       respawnTimer: 0,
       speed: BALANCE.player.speed,
       axe: { ...BALANCE.player.axe, cooldownTimer: 0 },
-      stack: { raw: 0, cooked: 0 },
+      stack: { raw: 0, cooked: 0, pelt: 0, leather: 0 },
       input: { move: { x: 0, z: 0 } },
     },
     bears: [],
     fence: { segments: createFenceSegments() },
     meatRaw: [],
     meatCooked: [],
+    pelts: [],
+    leather: [],
     fire: { pos: { x: 3, z: -3 }, cooking: [], capacity: BALANCE.fire.capacity },
     register: { pos: { x: -3, z: 3 }, counterStack: 0, moneyPiles: [] },
+    tannery: { pos: { x: 3, z: -7 }, processing: [], capacity: BALANCE.tannery.capacity },
+    leatherCounter: { pos: { x: -3, z: -7 }, counterStack: 0, moneyPiles: [] },
     customers: [],
+    premiumCustomers: [],
     money: { pocket: 0 },
     upgradePads: createUpgradePads(),
     employees: [],
+    towers: [],
     nextId: 0,
     playerDamageCD: 0,
     customerSpawnTimer: 0,
+    premiumCustomerSpawnTimer: 0,
   };
 }
 
 function createUpgradePads() {
   return [
     {
-      id: -1, type: 'repair-fence',
-      pos: { x: 0, z: 8 },
-      cost: BALANCE.pads.repairFenceCost,
-      deposited: 0,
-      completed: false,
-      multiUse: true,
-    },
-    {
-      id: -2, type: 'hire-cook',
+      id: -1, type: 'hire-cook',
       pos: { x: 5, z: -3 },
-      cost: BALANCE.pads.hireCookCost,
+      baseCost: BALANCE.pads.hireCookCost,
+      hireCount: 0,
       deposited: 0,
-      completed: false,
-      multiUse: false,
+      cost: BALANCE.pads.hireCookCost,
     },
     {
-      id: -3, type: 'hire-cashier',
+      id: -2, type: 'hire-cashier',
       pos: { x: -5, z: 3 },
-      cost: BALANCE.pads.hireCashierCost,
+      baseCost: BALANCE.pads.hireCashierCost,
+      hireCount: 0,
       deposited: 0,
-      completed: false,
-      multiUse: false,
+      cost: BALANCE.pads.hireCashierCost,
+    },
+    {
+      id: -3, type: 'hire-porter',
+      pos: { x: 3, z: 7 },
+      baseCost: BALANCE.pads.hirePorterBaseCost,
+      hireCount: 0,
+      deposited: 0,
+      cost: BALANCE.pads.hirePorterBaseCost,
+    },
+    {
+      id: -4, type: 'hire-repairman',
+      pos: { x: -3, z: 7 },
+      baseCost: BALANCE.pads.hireRepairmanBaseCost,
+      hireCount: 0,
+      deposited: 0,
+      cost: BALANCE.pads.hireRepairmanBaseCost,
+    },
+    { id: -5, type: 'build-tower', pos: { x: 8, z: 8 }, slot: 0, level: 0, baseCost: BALANCE.pads.buildTowerBaseCost, hireCount: 0, deposited: 0, cost: BALANCE.pads.buildTowerBaseCost },
+    { id: -6, type: 'build-tower', pos: { x: -8, z: 8 }, slot: 1, level: 0, baseCost: BALANCE.pads.buildTowerBaseCost, hireCount: 0, deposited: 0, cost: BALANCE.pads.buildTowerBaseCost },
+    { id: -7, type: 'build-tower', pos: { x: 8, z: -8 }, slot: 2, level: 0, baseCost: BALANCE.pads.buildTowerBaseCost, hireCount: 0, deposited: 0, cost: BALANCE.pads.buildTowerBaseCost },
+    { id: -8, type: 'build-tower', pos: { x: -8, z: -8 }, slot: 3, level: 0, baseCost: BALANCE.pads.buildTowerBaseCost, hireCount: 0, deposited: 0, cost: BALANCE.pads.buildTowerBaseCost },
+    {
+      id: -9, type: 'hire-tanner',
+      pos: { x: 0, z: -7 },
+      baseCost: BALANCE.pads.hireTannerBaseCost,
+      hireCount: 0, deposited: 0, cost: BALANCE.pads.hireTannerBaseCost,
     },
   ];
 }
@@ -92,7 +117,7 @@ export function saveWorld(world, storage = globalThis.localStorage) {
     },
     time: { elapsed: world.time.elapsed },
     upgradePads: world.upgradePads.map(p => ({
-      id: p.id, type: p.type, deposited: p.deposited, completed: p.completed,
+      id: p.id, type: p.type, deposited: p.deposited, hireCount: p.hireCount,
     })),
     employees: world.employees.map(e => ({ id: e.id, type: e.type })),
   };
@@ -143,6 +168,26 @@ export function dropMeatRaw(world, pos) {
   return piece;
 }
 
+export function dropPelt(world, pos) {
+  const piece = {
+    id: ++world.nextId,
+    pos: { x: pos.x, z: pos.z },
+    despawnTimer: BALANCE.meat.despawn,
+  };
+  world.pelts.push(piece);
+  return piece;
+}
+
+export function dropLeather(world, pos) {
+  const piece = {
+    id: ++world.nextId,
+    pos: { x: pos.x, z: pos.z },
+    despawnTimer: BALANCE.meat.despawn,
+  };
+  world.leather.push(piece);
+  return piece;
+}
+
 export function killBear(world, bear) {
   const idx = world.bears.indexOf(bear);
   if (idx >= 0) world.bears.splice(idx, 1);
@@ -154,4 +199,5 @@ export function killBear(world, bear) {
       z: bear.pos.z + Math.sin(angle) * r,
     });
   }
+  dropPelt(world, { x: bear.pos.x, z: bear.pos.z });
 }
