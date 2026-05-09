@@ -1,4 +1,5 @@
 import { BALANCE } from '../balance.js';
+import { currentBuyDuration } from './employee.js';
 
 const ENTER_THRESHOLD = 0.3;
 const LEAVE_THRESHOLD = 0.5;
@@ -79,7 +80,7 @@ export function update(world, dt) {
       // Front of queue + stock available → buy
       if (queueIndex === 0 && world.register.counterStack > 0) {
         c.state = 'buying';
-        c.buyTimer = BALANCE.customer.buyDuration;
+        c.buyTimer = currentBuyDuration(world);
       }
     } else if (c.state === 'buying') {
       c.buyTimer -= dt;
