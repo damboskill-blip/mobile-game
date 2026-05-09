@@ -45,6 +45,10 @@ export function spawnBearFromOutside(world) {
 }
 
 export function update(world, dt) {
+  // Global damage-to-player cooldown — prevents multiple bears from stacking damage
+  if (typeof world.playerDamageCD !== 'number') world.playerDamageCD = 0;
+  if (world.playerDamageCD > 0) world.playerDamageCD -= dt;
+
   // Spawn timer
   if (typeof world.bearSpawnTimer !== 'number') world.bearSpawnTimer = bearSpawnPeriod(0);
   world.bearSpawnTimer -= dt;
@@ -96,9 +100,11 @@ export function update(world, dt) {
         bear.state = 'through';
         continue;
       }
-      if (bear.attackCD <= 0 && world.player.state === 'alive') {
+      // Damage uses GLOBAL cooldown so multiple bears in melee don't stack damage.
+      // The first bear in attacking-player range each cooldown deals the hit.
+      if (world.playerDamageCD <= 0 && world.player.state === 'alive') {
         world.player.hp = Math.max(0, world.player.hp - BALANCE.bear.damagePlayer);
-        bear.attackCD = BALANCE.bear.attackCD;
+        world.playerDamageCD = BALANCE.bear.attackCD;
       }
     }
   }

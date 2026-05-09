@@ -27,6 +27,7 @@ export function createWorld() {
     upgradePads: [],
     employees: [],
     nextId: 0,
+    playerDamageCD: 0,
   };
 }
 
@@ -78,12 +79,11 @@ export function loadWorld(world, storage = globalThis.localStorage) {
 
   if (saved.money) world.money.pocket = saved.money.pocket ?? 0;
   if (saved.time) world.time.elapsed = saved.time.elapsed ?? 0;
-  if (saved.fence?.segments) {
-    for (const seg of saved.fence.segments) {
-      const target = world.fence.segments.find(s => s.id === seg.id);
-      if (target) { target.hp = seg.hp; target.broken = seg.broken; }
-    }
-  }
+  // Fence state intentionally not restored here. The save format keeps it for
+  // forward-compat, but until the Phase 5 repair-fence pad exists, restoring a
+  // broken fence would leave players with no way to recover. Re-enable when the
+  // repair pad ships.
+  // if (saved.fence?.segments) { ... restore hp/broken ... }
   // upgradePads / employees restored in later phases when those systems exist
 }
 

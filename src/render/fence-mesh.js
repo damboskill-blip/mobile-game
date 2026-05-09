@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-const LOG_COUNT = 4;     // logs per segment
+const LOG_COUNT = 12;    // logs per segment — covers chord ~4.6 of 4.68 between centers
 const LOG_HEIGHT = 1.4;
 const LOG_RADIUS = 0.18;
 const LOG_SPACING = 0.42;
