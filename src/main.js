@@ -20,7 +20,11 @@ import { createMeatMesh } from './render/meat-mesh.js';
 import { createStackGroups, syncStackMesh } from './render/stack-mesh.js';
 import { createCamera, updateCamera, handleResize } from './camera.js';
 import { setupJoystick } from './input.js';
-import { setupHud } from './ui.js';
+import { update as updateUpgradePad } from './systems/upgrade-pad.js';
+import { update as updateEmployee } from './systems/employee.js';
+import { createPadMesh, syncPadMesh } from './render/pad-mesh.js';
+import { createEmployeeMesh } from './render/employee-mesh.js';
+import { setupHud, setupPadLabels } from './ui.js';
 
 const canvas = document.getElementById('game');
 const world = createWorld();
@@ -56,6 +60,18 @@ const registerMesh = createRegisterMesh();
 registerMesh.position.set(world.register.pos.x, 0, world.register.pos.z);
 scene.add(registerMesh);
 
+// Pad meshes
+const padMeshes = new Map();
+for (const pad of world.upgradePads) {
+  const m = createPadMesh();
+  m.position.set(pad.pos.x, 0, pad.pos.z);
+  scene.add(m);
+  padMeshes.set(pad.id, m);
+}
+
+const employeeMeshes = new Map();
+const padLabels = setupPadLabels();
+
 // Bears + meat — managed dynamically each frame
 const bearMeshes = new Map();
 const meatMeshes = new Map();
@@ -73,7 +89,7 @@ function autoSave(world) {
   if (saveTimer >= 5) { saveWorld(world); saveTimer = 0; }
 }
 
-const systems = [updateBear, updateFence, updateFire, updateCustomer, updatePlayer, updateMeat, updateMoney];
+const systems = [updateBear, updateFence, updateFire, updateCustomer, updatePlayer, updateMeat, updateMoney, updateUpgradePad, updateEmployee];
 
 function syncEntityMeshes(entityArray, meshMap, scene, factory) {
   // Remove meshes for entities no longer present
@@ -124,6 +140,12 @@ function render(world) {
   syncEntityMeshes(world.customers, customerMeshes, scene, () => createCustomerMesh());
   syncEntityMeshes(world.register.moneyPiles, moneyMeshes, scene, () => createMoneyMesh());
   syncRegisterStack(registerMesh, world.register.counterStack);
+  for (const pad of world.upgradePads) {
+    const m = padMeshes.get(pad.id);
+    if (m) syncPadMesh(m, pad);
+  }
+  syncEntityMeshes(world.employees, employeeMeshes, scene, (e) => createEmployeeMesh(e.type));
+  padLabels.sync(world, camera);
   updateCamera(camera, world, world.time.dt);
   tickFireFlicker(fireMesh, world.time.elapsed);
   hud.update(world);
