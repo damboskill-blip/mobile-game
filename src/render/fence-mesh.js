@@ -26,7 +26,7 @@ export function createFenceSegmentMesh() {
 export function applyFenceSegmentTransform(mesh, segment) {
   // Position: segment.pos {x, z}; rotation Y: segment.rot - π/2 so logs are tangent to the circle
   mesh.position.set(segment.pos.x, 0, segment.pos.z);
-  mesh.rotation.y = segment.rot - Math.PI / 2;
+  mesh.rotation.y = -segment.rot - Math.PI / 2;
   // If broken, drop the segment to lie on the ground (rotate 90° on +X)
   if (segment.broken) {
     mesh.rotation.x = -Math.PI / 2;
