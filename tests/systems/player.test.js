@@ -9,7 +9,7 @@ describe('player movement', () => {
     const w = createWorld();
     w.player.input.move = { x: 1, z: 0 };
     updatePlayer(w, 0.1);
-    expect(w.player.pos.x).toBeCloseTo(0.5, 5); // 5 units/sec * 0.1 sec
+    expect(w.player.pos.x).toBeCloseTo(BALANCE.player.speed * 0.1, 5); // speed * 0.1 sec
     expect(w.player.pos.z).toBeCloseTo(0, 5);
   });
 
@@ -26,7 +26,7 @@ describe('player movement', () => {
     w.player.input.move = { x: 1, z: 1 };
     updatePlayer(w, 1.0);
     const dist = Math.hypot(w.player.pos.x, w.player.pos.z);
-    expect(dist).toBeCloseTo(5.0, 5);
+    expect(dist).toBeCloseTo(BALANCE.player.speed * 1.0, 5);
   });
 
   it('updates rotation to face movement direction', () => {

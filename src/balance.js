@@ -5,22 +5,23 @@ export const BALANCE = {
     radius: 12,
   },
   player: {
-    speed: 5,
-    hpMax: 100,
+    speed: 6,
+    hpMax: 130,
     respawn: 2,
     pickupRadius: 1.0,
-    regenRate: 10,
+    regenRate: 15,
     stack: { max: 10 },
     axe: { range: 1.8, damage: 35, cooldown: 0.4 },
   },
   bear: {
-    hpBase: 70,
+    hpBase: 50,
     speed: 2.5,
-    damageFenceBase: 10,
-    damagePlayer: 25,
+    damageFenceBase: 6,
+    damagePlayer: 18,
     attackCD: 1.0,
     attackRange: 1.5,
     meatDrops: 3,
+    spawnDistance: 3,
   },
   fence: {
     segments: 16,
@@ -39,32 +40,32 @@ export const BALANCE = {
     despawn: 60,
   },
   customer: {
-    spawnInterval: 3.0,
+    spawnInterval: 2.0,
     buyDuration: 1.0,
-    pricePerPiece: 5,
+    pricePerPiece: 8,
     queueSoftMin: 2,
     queueMax: 5,
     queueOffset: 1.2,
-    spawnRingRadius: 22,
+    spawnRingRadius: 16,
   },
   pads: {
-    repairFenceCost: 200,
-    hireCookCost: 500,
-    hireCashierCost: 800,
-    depositRate: 50,
+    repairFenceCost: 100,
+    hireCookCost: 300,
+    hireCashierCost: 500,
+    depositRate: 100,
     zoneRadius: 0.8,
   },
 };
 
 // Difficulty scaling — m = elapsed minutes
 export function bearSpawnPeriod(m) {
-  return Math.max(1.0, Math.min(4.0, 4.0 - 0.3 * m));
+  return Math.max(1.5, Math.min(3.0, 3.0 - 0.2 * m));
 }
 
 export function bearHp(m) {
-  return BALANCE.bear.hpBase + 5 * m;
+  return BALANCE.bear.hpBase + 3 * m;
 }
 
 export function bearDamageFence(m) {
-  return Math.max(10, Math.min(20, BALANCE.bear.damageFenceBase + 1 * m));
+  return Math.max(BALANCE.bear.damageFenceBase, Math.min(12, BALANCE.bear.damageFenceBase + 0.5 * m));
 }
