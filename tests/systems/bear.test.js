@@ -126,7 +126,7 @@ describe('bear AI — attacking-player damage', () => {
     w.player.pos = { x: 0, y: 0, z: 0 };
     const bear = spawnBear(w, { x: 0.5, z: 0 });
     bear.state = 'attacking-player';
-    bear.attackCD = 0;
+    w.playerDamageCD = 0;
     const hpBefore = w.player.hp;
     updateBear(w, 0.016);
     expect(w.player.hp).toBe(hpBefore - BALANCE.bear.damagePlayer);
@@ -142,9 +142,28 @@ describe('bear AI — attacking-player damage', () => {
     w.player.state = 'dead';
     const bear = spawnBear(w, { x: 0.5, z: 0 });
     bear.state = 'attacking-player';
-    bear.attackCD = 0;
+    w.playerDamageCD = 0;
     const hpBefore = w.player.hp;
     updateBear(w, 0.016);
     expect(w.player.hp).toBe(hpBefore);
+  });
+});
+
+describe('bear AI — damage does not stack across multiple attackers', () => {
+  it('three bears in attacking-player range still produce one damage tick per attackCD', () => {
+    const w = createWorld();
+    w.player.pos = { x: 0, y: 0, z: 0 };
+    spawnBear(w, { x: 0.5, z: 0 }).state = 'attacking-player';
+    spawnBear(w, { x: 0, z: 0.5 }).state = 'attacking-player';
+    spawnBear(w, { x: -0.5, z: 0 }).state = 'attacking-player';
+    w.playerDamageCD = 0;
+    const hpBefore = w.player.hp;
+    updateBear(w, 0.016);
+    // Only one bear's hit lands per cooldown, regardless of count
+    expect(w.player.hp).toBe(hpBefore - BALANCE.bear.damagePlayer);
+    updateBear(w, 0.5); // under cooldown
+    expect(w.player.hp).toBe(hpBefore - BALANCE.bear.damagePlayer);
+    updateBear(w, BALANCE.bear.attackCD);
+    expect(w.player.hp).toBe(hpBefore - BALANCE.bear.damagePlayer * 2);
   });
 });

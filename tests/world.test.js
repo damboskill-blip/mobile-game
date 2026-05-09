@@ -10,6 +10,7 @@ describe('createWorld', () => {
     expect(w.base).toEqual({ center: { x: 0, z: 0 }, radius: BALANCE.base.radius });
     expect(w.money).toEqual({ pocket: 0 });
     expect(w.nextId).toBe(0);
+    expect(w.playerDamageCD).toBe(0);
   });
 
   it('player starts at base center with full HP', () => {
@@ -93,7 +94,8 @@ describe('save/load', () => {
     loadWorld(w, storage);
     expect(w.money.pocket).toBe(500);
     expect(w.time.elapsed).toBe(42);
-    expect(w.fence.segments[0].hp).toBe(75);
+    // Fence intentionally not restored from save until Phase 5 repair-pad
+    expect(w.fence.segments[0].hp).toBe(BALANCE.fence.hpPerSegment);
     // ephemeral state is untouched
     expect(w.player.hp).toBe(BALANCE.player.hpMax);
     expect(w.bears).toEqual([]);
