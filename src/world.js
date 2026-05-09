@@ -21,13 +21,14 @@ export function createWorld() {
     meatRaw: [],
     meatCooked: [],
     fire: { pos: { x: 3, z: -3 }, cooking: [], capacity: BALANCE.fire.capacity },
-    register: { pos: null, counterStack: 0, moneyPiles: [] },
+    register: { pos: { x: -3, z: 3 }, counterStack: 0, moneyPiles: [] },
     customers: [],
     money: { pocket: 0 },
     upgradePads: [],
     employees: [],
     nextId: 0,
     playerDamageCD: 0,
+    customerSpawnTimer: 0,
   };
 }
 

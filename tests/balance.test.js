@@ -27,6 +27,12 @@ describe('balance', () => {
   it('fire.transferRange is positive', () => {
     expect(BALANCE.fire.transferRange).toBeGreaterThan(0);
   });
+
+  it('register and customer transfer/queue params present', () => {
+    expect(BALANCE.register.transferRange).toBeGreaterThan(0);
+    expect(BALANCE.customer.queueOffset).toBeGreaterThan(0);
+    expect(BALANCE.customer.spawnRingRadius).toBeGreaterThan(0);
+  });
 });
 
 describe('difficulty scaling', () => {

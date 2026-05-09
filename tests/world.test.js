@@ -34,6 +34,22 @@ describe('createWorld', () => {
     expect(w.employees).toEqual([]);
   });
 
+  it('register is placed at a valid position inside the base, opposite from fire', () => {
+    const w = createWorld();
+    expect(w.register.pos).not.toBeNull();
+    const dist = Math.hypot(w.register.pos.x, w.register.pos.z);
+    expect(dist).toBeLessThan(w.base.radius);
+    // Reasonably separated from fire to avoid overlap
+    const dxFromFire = w.register.pos.x - w.fire.pos.x;
+    const dzFromFire = w.register.pos.z - w.fire.pos.z;
+    expect(Math.hypot(dxFromFire, dzFromFire)).toBeGreaterThan(3);
+  });
+
+  it('customerSpawnTimer initialized to 0', () => {
+    const w = createWorld();
+    expect(w.customerSpawnTimer).toBe(0);
+  });
+
   it('fire is placed at a valid position inside the base', () => {
     const w = createWorld();
     expect(w.fire.pos).not.toBeNull();
