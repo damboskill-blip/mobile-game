@@ -32,6 +32,9 @@ export const BALANCE = {
     cookTimer: 2.0,
     transferRange: 1.5,
   },
+  register: {
+    transferRange: 1.5,
+  },
   meat: {
     despawn: 60,
   },
@@ -41,6 +44,8 @@ export const BALANCE = {
     pricePerPiece: 5,
     queueSoftMin: 2,
     queueMax: 5,
+    queueOffset: 1.2,
+    spawnRingRadius: 22,
   },
   pads: {
     repairFenceCost: 200,

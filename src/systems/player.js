@@ -16,6 +16,17 @@ function tryTransferStackToFire(world) {
   p.stack.raw -= toTransfer;
 }
 
+function tryTransferStackToCounter(world) {
+  const p = world.player;
+  if (!world.register.pos) return;
+  if (p.stack.cooked <= 0) return;
+  const dx = world.register.pos.x - p.pos.x;
+  const dz = world.register.pos.z - p.pos.z;
+  if (Math.hypot(dx, dz) > BALANCE.register.transferRange) return;
+  world.register.counterStack += p.stack.cooked;
+  p.stack.cooked = 0;
+}
+
 function dropStack(world) {
   const p = world.player;
   const total = p.stack.raw + p.stack.cooked;
@@ -80,6 +91,7 @@ export function update(world, dt) {
 
   // Try to deposit raw stack onto fire
   tryTransferStackToFire(world);
+  tryTransferStackToCounter(world);
 
   // Auto-attack
   if (p.axe.cooldownTimer > 0) p.axe.cooldownTimer -= dt;
