@@ -5,7 +5,7 @@ import { BALANCE } from '../../src/balance.js';
 
 describe('premium customer spawn', () => {
   it('spawnPremiumCustomer adds customer at the spawn ring with entering state', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     const c = spawnPremiumCustomer(w);
     expect(w.premiumCustomers).toHaveLength(1);
     expect(c.state).toBe('entering');
@@ -14,7 +14,7 @@ describe('premium customer spawn', () => {
   });
 
   it('does not spawn beyond queueMax', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     w.leatherCounter.counterStack = 100;
     for (let i = 0; i < BALANCE.customer.queueMax; i++) spawnPremiumCustomer(w);
     w.premiumCustomerSpawnTimer = 0;
@@ -25,7 +25,7 @@ describe('premium customer spawn', () => {
 
 describe('premium customer AI', () => {
   it('buying completes: leatherCounter.counterStack decrements and money pile spawned at premiumPricePerLeather', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     const c = spawnPremiumCustomer(w);
     c.state = 'buying';
     c.buyTimer = 0.05;
@@ -39,10 +39,11 @@ describe('premium customer AI', () => {
   });
 
   it('leaving customer despawns when it reaches the ring edge', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     const c = spawnPremiumCustomer(w);
     c.state = 'leaving';
     c.pos = { x: BALANCE.customer.premiumSpawnRingRadius - 0.1, z: 0 };
+    w.premiumCustomerSpawnTimer = 1000;
     updateLeatherCustomer(w, 0.5);
     expect(w.premiumCustomers).toHaveLength(0);
   });

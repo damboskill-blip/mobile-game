@@ -167,3 +167,15 @@ describe('bear AI — damage does not stack across multiple attackers', () => {
     expect(w.player.hp).toBe(hpBefore - BALANCE.bear.damagePlayer * 2);
   });
 });
+
+describe("bear spawn cap", () => {
+  it("does not spawn beyond bear.maxAlive even when timer is ready", () => {
+    const w = createWorld();
+    for (let i = 0; i < BALANCE.bear.maxAlive; i++) {
+      spawnBear(w, { x: 0, z: 0 });
+    }
+    w.bearSpawnTimer = 0;
+    updateBear(w, 0.016);
+    expect(w.bears.length).toBe(BALANCE.bear.maxAlive);
+  });
+});

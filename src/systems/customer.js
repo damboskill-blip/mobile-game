@@ -49,15 +49,12 @@ export function spawnCustomer(world) {
 }
 
 export function update(world, dt) {
-  // Spawn timer
+  // Spawn timer — customers queue regardless of stock so the player feels demand pressure.
   world.customerSpawnTimer -= dt;
   if (world.customerSpawnTimer <= 0) {
     world.customerSpawnTimer = BALANCE.customer.spawnInterval;
     const queueAlive = world.customers.filter(c => c.state !== 'leaving').length;
-    const shouldSpawn =
-      queueAlive < BALANCE.customer.queueMax &&
-      world.register.counterStack > 0;
-    if (shouldSpawn) spawnCustomer(world);
+    if (queueAlive < BALANCE.customer.queueMax) spawnCustomer(world);
   }
 
   // Build queue index lookup: only for customers in 'entering' or 'queuing'

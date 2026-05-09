@@ -5,7 +5,7 @@ import { BALANCE, BALANCE_VERSION } from '../src/balance.js';
 
 describe('createWorld', () => {
   it('returns world with required top-level shape', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     expect(w.time).toEqual({ elapsed: 0, dt: 0, frameCount: 0 });
     expect(w.base).toEqual({ center: { x: 0, z: 0 }, radius: BALANCE.base.radius });
     expect(w.money).toEqual({ pocket: 0 });
@@ -26,7 +26,7 @@ describe('createWorld', () => {
   });
 
   it('initializes empty entity arrays', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     expect(w.bears).toEqual([]);
     expect(w.meatRaw).toEqual([]);
     expect(w.meatCooked).toEqual([]);
@@ -36,6 +36,13 @@ describe('createWorld', () => {
     expect(w.premiumCustomers).toEqual([]);
     expect(w.employees).toEqual([]);
     expect(w.towers).toEqual([]);
+  });
+
+  it('pre-fills customer queues by default', () => {
+    const w = createWorld();
+    expect(w.customers.length).toBe(BALANCE.customer.initialQueueRegular);
+    expect(w.premiumCustomers.length).toBe(BALANCE.customer.initialQueuePremium);
+    expect(w.customers.every(c => c.state === 'queuing')).toBe(true);
   });
 
   it('register is placed at a valid position inside the base, opposite from fire', () => {
@@ -174,7 +181,7 @@ describe('save/load', () => {
 
 describe('world helpers', () => {
   it('spawnBear adds bear with auto-incremented id and required fields', () => {
-    const w = createWorld();
+    const w = createWorld({ prefillCustomers: false });
     const bear = spawnBear(w, { x: 5, z: -3 });
     expect(w.bears).toHaveLength(1);
     expect(bear.id).toBe(1);

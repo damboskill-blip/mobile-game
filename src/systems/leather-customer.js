@@ -47,7 +47,8 @@ export function update(world, dt) {
   world.premiumCustomerSpawnTimer -= dt;
   if (world.premiumCustomerSpawnTimer <= 0) {
     world.premiumCustomerSpawnTimer = BALANCE.customer.premiumSpawnInterval;
-    if (world.leatherCounter.counterStack > 0 && world.premiumCustomers.length < BALANCE.customer.queueMax) {
+    const queueAlive = world.premiumCustomers.filter(c => c.state !== 'leaving').length;
+    if (queueAlive < BALANCE.customer.queueMax) {
       spawnPremiumCustomer(world);
     }
   }
