@@ -32,6 +32,7 @@ describe('createWorld', () => {
     expect(w.meatCooked).toEqual([]);
     expect(w.customers).toEqual([]);
     expect(w.employees).toEqual([]);
+    expect(w.towers).toEqual([]);
   });
 
   it('register is placed at a valid position inside the base, opposite from fire', () => {
@@ -45,15 +46,29 @@ describe('createWorld', () => {
     expect(Math.hypot(dxFromFire, dzFromFire)).toBeGreaterThan(3);
   });
 
-  it('upgrade pads are pre-placed: 4 pad types with correct shape', () => {
+  it('upgrade pads are pre-placed: 8 pads (4 hire + 4 build-tower) with correct shape', () => {
     const w = createWorld();
+    expect(w.upgradePads).toHaveLength(8);
     const types = w.upgradePads.map(p => p.type).sort();
-    expect(types).toEqual(['hire-cashier', 'hire-cook', 'hire-porter', 'hire-repairman']);
+    expect(types).toEqual([
+      'build-tower', 'build-tower', 'build-tower', 'build-tower',
+      'hire-cashier', 'hire-cook', 'hire-porter', 'hire-repairman',
+    ]);
     for (const p of w.upgradePads) {
       expect(p.deposited).toBe(0);
       expect(p.hireCount).toBe(0);
-      expect(typeof p.cost).toBe('number');
-      expect(p.cost).toBeGreaterThan(0);
+      if (p.type !== 'build-tower') {
+        expect(typeof p.cost).toBe('number');
+        expect(p.cost).toBeGreaterThan(0);
+      }
+    }
+    // build-tower pads have level:0 and slot 0..3
+    const towerPads = w.upgradePads.filter(p => p.type === 'build-tower');
+    expect(towerPads).toHaveLength(4);
+    const slots = towerPads.map(p => p.slot).sort((a, b) => a - b);
+    expect(slots).toEqual([0, 1, 2, 3]);
+    for (const p of towerPads) {
+      expect(p.level).toBe(0);
     }
   });
 

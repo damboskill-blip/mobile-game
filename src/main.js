@@ -22,8 +22,10 @@ import { createCamera, updateCamera, handleResize } from './camera.js';
 import { setupJoystick } from './input.js';
 import { update as updateUpgradePad } from './systems/upgrade-pad.js';
 import { update as updateEmployee } from './systems/employee.js';
+import { update as updateTower } from './systems/tower.js';
 import { createPadMesh, syncPadMesh } from './render/pad-mesh.js';
 import { createEmployeeMesh } from './render/employee-mesh.js';
+import { createTowerMesh, applyTowerLevel, setTowerRotationToTarget } from './render/tower-mesh.js';
 import { setupHud, setupPadLabels } from './ui.js';
 
 const canvas = document.getElementById('game');
@@ -63,13 +65,14 @@ scene.add(registerMesh);
 // Pad meshes
 const padMeshes = new Map();
 for (const pad of world.upgradePads) {
-  const m = createPadMesh();
+  const m = createPadMesh(pad.type);
   m.position.set(pad.pos.x, 0, pad.pos.z);
   scene.add(m);
   padMeshes.set(pad.id, m);
 }
 
 const employeeMeshes = new Map();
+const towerMeshes = new Map();
 const padLabels = setupPadLabels();
 
 // Bears + meat — managed dynamically each frame
@@ -89,7 +92,7 @@ function autoSave(world) {
   if (saveTimer >= 5) { saveWorld(world); saveTimer = 0; }
 }
 
-const systems = [updateBear, updateFence, updateFire, updateCustomer, updatePlayer, updateMeat, updateMoney, updateUpgradePad, updateEmployee];
+const systems = [updateBear, updateFence, updateFire, updateCustomer, updatePlayer, updateMeat, updateMoney, updateUpgradePad, updateEmployee, updateTower];
 
 function syncEntityMeshes(entityArray, meshMap, scene, factory) {
   // Remove meshes for entities no longer present
@@ -145,6 +148,17 @@ function render(world) {
     if (m) syncPadMesh(m, pad);
   }
   syncEntityMeshes(world.employees, employeeMeshes, scene, (e) => createEmployeeMesh(e.type));
+  syncEntityMeshes(world.towers, towerMeshes, scene, () => createTowerMesh());
+  for (const tower of world.towers) {
+    const m = towerMeshes.get(tower.id);
+    if (!m) continue;
+    applyTowerLevel(m, tower);
+    // Rotate turret toward target
+    if (tower.target) {
+      const targetBear = world.bears.find(b => b.id === tower.target);
+      if (targetBear) setTowerRotationToTarget(m, tower.pos, targetBear.pos);
+    }
+  }
   padLabels.sync(world, camera);
   updateCamera(camera, world, world.time.dt);
   tickFireFlicker(fireMesh, world.time.elapsed);

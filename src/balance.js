@@ -57,6 +57,14 @@ export const BALANCE = {
     hireMultiplier: 1.7,        // each subsequent hire of same type costs 1.7x previous
     hirePorterBaseCost: 400,
     hireRepairmanBaseCost: 300,
+    buildTowerBaseCost: 1200,
+  },
+  tower: {
+    levels: [
+      { damage: 25, range: 8, fireCD: 1.5 },
+      { damage: 40, range: 9, fireCD: 1.2 },
+      { damage: 60, range: 10, fireCD: 0.8 },
+    ],
   },
   worker: {
     porterSpeed: 4.5,

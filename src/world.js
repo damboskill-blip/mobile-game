@@ -26,6 +26,7 @@ export function createWorld() {
     money: { pocket: 0 },
     upgradePads: createUpgradePads(),
     employees: [],
+    towers: [],
     nextId: 0,
     playerDamageCD: 0,
     customerSpawnTimer: 0,
@@ -66,6 +67,10 @@ function createUpgradePads() {
       deposited: 0,
       cost: BALANCE.pads.hireRepairmanBaseCost,
     },
+    { id: -5, type: 'build-tower', pos: { x: 8, z: 8 }, slot: 0, level: 0, baseCost: BALANCE.pads.buildTowerBaseCost, hireCount: 0, deposited: 0, cost: BALANCE.pads.buildTowerBaseCost },
+    { id: -6, type: 'build-tower', pos: { x: -8, z: 8 }, slot: 1, level: 0, baseCost: BALANCE.pads.buildTowerBaseCost, hireCount: 0, deposited: 0, cost: BALANCE.pads.buildTowerBaseCost },
+    { id: -7, type: 'build-tower', pos: { x: 8, z: -8 }, slot: 2, level: 0, baseCost: BALANCE.pads.buildTowerBaseCost, hireCount: 0, deposited: 0, cost: BALANCE.pads.buildTowerBaseCost },
+    { id: -8, type: 'build-tower', pos: { x: -8, z: -8 }, slot: 3, level: 0, baseCost: BALANCE.pads.buildTowerBaseCost, hireCount: 0, deposited: 0, cost: BALANCE.pads.buildTowerBaseCost },
   ];
 }
 

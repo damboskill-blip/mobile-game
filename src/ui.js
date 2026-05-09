@@ -42,6 +42,7 @@ const PAD_TEXT = {
   'hire-cashier': '💼 Cashier',
   'hire-porter': '📦 Porter',
   'hire-repairman': '🔧 Repairman',
+  'build-tower': '🏹 Tower',
 };
 
 export function setupPadLabels(container = document.body) {
@@ -75,11 +76,19 @@ export function setupPadLabels(container = document.body) {
       for (const pad of world.upgradePads) {
         const el = labels.get(pad.id);
         const text = PAD_TEXT[pad.type] || pad.type;
-        if (pad.completed && !pad.multiUse) {
-          el.textContent = `${text} ✓`;
+        if (pad.type === 'build-tower' && pad.level >= 3) {
+          el.textContent = `${text} L3 ✓`;
           el.style.opacity = '0.55';
+        } else if (pad.type === 'build-tower') {
+          el.textContent = pad.deposited > 0
+            ? `${text} L${pad.level + 1} · $${Math.round(pad.deposited)}/${pad.cost}`
+            : `${text} L${pad.level + 1} · $${pad.cost}`;
+          el.style.opacity = '1';
+        } else if (pad.deposited > 0) {
+          el.textContent = `${text} (${pad.hireCount}) · $${Math.round(pad.deposited)}/${pad.cost}`;
+          el.style.opacity = '1';
         } else {
-          el.textContent = `${text} · $${Math.round(pad.deposited)}/${pad.cost}`;
+          el.textContent = `${text} (${pad.hireCount}) · $${pad.cost}`;
           el.style.opacity = '1';
         }
         // Project pad.pos to screen coords

@@ -29,6 +29,26 @@ function applyEffect(world, pad) {
       pos: { x: 0, z: 0 },
       rot: 0, state: 'idle', target: null,
     });
+  } else if (pad.type === 'build-tower') {
+    if (pad.level === 0) {
+      // Build new tower L1
+      world.towers.push({
+        id: ++world.nextId,
+        pos: { x: pad.pos.x, z: pad.pos.z },
+        slot: pad.slot,
+        level: 1,
+        fireCooldown: 0,
+        target: null,
+      });
+      pad.level = 1;
+    } else if (pad.level < 3) {
+      // Upgrade existing tower
+      const tower = world.towers.find(t => t.slot === pad.slot);
+      if (tower) {
+        tower.level += 1;
+        pad.level = tower.level;
+      }
+    }
   }
 }
 
@@ -39,6 +59,7 @@ export function update(world, dt) {
     const d = Math.hypot(pad.pos.x - p.pos.x, pad.pos.z - p.pos.z);
     if (d > BALANCE.pads.zoneRadius) continue;
     if (world.money.pocket <= 0) continue;
+    if (pad.cost === Infinity) continue;
 
     const remaining = pad.cost - pad.deposited;
     const spend = Math.min(BALANCE.pads.depositRate * dt, world.money.pocket, remaining);
@@ -49,7 +70,11 @@ export function update(world, dt) {
       applyEffect(world, pad);
       pad.hireCount++;
       pad.deposited = 0;
-      pad.cost = nextHireCost(pad.baseCost, pad.hireCount);
+      if (pad.type === 'build-tower' && pad.level >= 3) {
+        pad.cost = Infinity;
+      } else {
+        pad.cost = nextHireCost(pad.baseCost, pad.hireCount);
+      }
     }
   }
 }

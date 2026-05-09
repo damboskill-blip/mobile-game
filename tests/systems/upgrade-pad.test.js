@@ -156,3 +156,92 @@ describe('nextHireCost helper', () => {
     expect(nextHireCost(300, 2)).toBe(Math.round(300 * 1.7 * 1.7));
   });
 });
+
+describe('build-tower pad', () => {
+  function towerPad(w, slot = 0) {
+    return w.upgradePads.find(p => p.type === 'build-tower' && p.slot === slot);
+  }
+
+  it('first deposit on build-tower pad creates tower at slot with level 1', () => {
+    const w = createWorld();
+    const pad = towerPad(w, 0);
+    w.player.pos = { x: pad.pos.x, y: 0, z: pad.pos.z };
+    w.money.pocket = pad.cost;
+    updatePad(w, 100);
+    expect(w.towers).toHaveLength(1);
+    expect(w.towers[0].level).toBe(1);
+    expect(w.towers[0].slot).toBe(0);
+    expect(pad.level).toBe(1);
+  });
+
+  it('second deposit upgrades tower to level 2', () => {
+    const w = createWorld();
+    const pad = towerPad(w, 0);
+    w.player.pos = { x: pad.pos.x, y: 0, z: pad.pos.z };
+    w.money.pocket = 99999;
+    // First: build L1
+    updatePad(w, 100);
+    expect(pad.level).toBe(1);
+    // Second: upgrade to L2
+    updatePad(w, 100);
+    expect(pad.level).toBe(2);
+    expect(w.towers[0].level).toBe(2);
+  });
+
+  it('third deposit upgrades tower to level 3', () => {
+    const w = createWorld();
+    const pad = towerPad(w, 0);
+    w.player.pos = { x: pad.pos.x, y: 0, z: pad.pos.z };
+    w.money.pocket = 99999;
+    updatePad(w, 100); // L1
+    updatePad(w, 100); // L2
+    updatePad(w, 100); // L3
+    expect(pad.level).toBe(3);
+    expect(w.towers[0].level).toBe(3);
+    expect(pad.cost).toBe(Infinity);
+  });
+
+  it('fourth deposit does nothing (cost is Infinity)', () => {
+    const w = createWorld();
+    const pad = towerPad(w, 0);
+    w.player.pos = { x: pad.pos.x, y: 0, z: pad.pos.z };
+    w.money.pocket = 99999;
+    updatePad(w, 100); // L1
+    updatePad(w, 100); // L2
+    updatePad(w, 100); // L3
+    const moneyAfterThree = w.money.pocket;
+    updatePad(w, 100); // should do nothing
+    expect(w.money.pocket).toBe(moneyAfterThree);
+    expect(w.towers).toHaveLength(1);
+    expect(w.towers[0].level).toBe(3);
+  });
+
+  it('cost progression: $1200 → $2040 → $3468 → Infinity', () => {
+    const w = createWorld();
+    const pad = towerPad(w, 0);
+    expect(pad.cost).toBe(1200);
+    w.player.pos = { x: pad.pos.x, y: 0, z: pad.pos.z };
+    w.money.pocket = 99999;
+    updatePad(w, 100); // L1 built; cost becomes nextHireCost(1200, 1)
+    // hireCount = 1, cost = round(1200 * 1.7^1) = 2040
+    expect(pad.cost).toBeCloseTo(Math.round(1200 * 1.7), 0);
+    updatePad(w, 100); // L2; cost becomes nextHireCost(1200, 2)
+    // hireCount = 2, cost = round(1200 * 1.7^2) = 3468
+    expect(pad.cost).toBeCloseTo(Math.round(1200 * 1.7 * 1.7), 0);
+    updatePad(w, 100); // L3; cost becomes Infinity
+    expect(pad.cost).toBe(Infinity);
+  });
+
+  it('each slot builds an independent tower', () => {
+    const w = createWorld();
+    for (let slot = 0; slot < 4; slot++) {
+      const pad = towerPad(w, slot);
+      w.player.pos = { x: pad.pos.x, y: 0, z: pad.pos.z };
+      w.money.pocket = 99999;
+      updatePad(w, 100);
+    }
+    expect(w.towers).toHaveLength(4);
+    const slots = w.towers.map(t => t.slot).sort((a, b) => a - b);
+    expect(slots).toEqual([0, 1, 2, 3]);
+  });
+});
