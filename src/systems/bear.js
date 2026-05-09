@@ -2,6 +2,28 @@ import { spawnBear } from '../world.js';
 import { BALANCE, bearSpawnPeriod, bearHp } from '../balance.js';
 import { damageFenceSegment } from './fence.js';
 
+const SEPARATION_DIST = 1.5;
+const SEPARATION_FORCE = 4.0;
+
+function applySeparation(world, dt) {
+  for (const bear of world.bears) {
+    let dx = 0, dz = 0;
+    for (const other of world.bears) {
+      if (other === bear) continue;
+      const ox = bear.pos.x - other.pos.x;
+      const oz = bear.pos.z - other.pos.z;
+      const d = Math.hypot(ox, oz);
+      if (d > 0 && d < SEPARATION_DIST) {
+        const strength = (SEPARATION_DIST - d) / SEPARATION_DIST;
+        dx += (ox / d) * strength;
+        dz += (oz / d) * strength;
+      }
+    }
+    bear.pos.x += dx * SEPARATION_FORCE * dt;
+    bear.pos.z += dz * SEPARATION_FORCE * dt;
+  }
+}
+
 export function findNearestUnbrokenSegment(world, pos) {
   let best = null;
   let bestDist = Infinity;
@@ -45,6 +67,7 @@ export function spawnBearFromOutside(world) {
 }
 
 export function update(world, dt) {
+  applySeparation(world, dt);
   // Global damage-to-player cooldown — prevents multiple bears from stacking damage
   if (typeof world.playerDamageCD !== 'number') world.playerDamageCD = 0;
   if (world.playerDamageCD > 0) world.playerDamageCD -= dt;
