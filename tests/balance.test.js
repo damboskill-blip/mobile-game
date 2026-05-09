@@ -8,8 +8,8 @@ describe('balance', () => {
   });
 
   it('player has expected foundation constants', () => {
-    expect(BALANCE.player.speed).toBe(5);
-    expect(BALANCE.player.hpMax).toBe(100);
+    expect(BALANCE.player.speed).toBe(6);
+    expect(BALANCE.player.hpMax).toBe(130);
     expect(BALANCE.player.respawn).toBe(2);
     expect(BALANCE.player.pickupRadius).toBe(1.0);
   });
@@ -40,21 +40,21 @@ describe('balance', () => {
 });
 
 describe('difficulty scaling', () => {
-  it('bear spawn period decreases over time, clamped at 1.0', () => {
-    expect(bearSpawnPeriod(0)).toBe(4.0);
-    expect(bearSpawnPeriod(5)).toBeCloseTo(2.5, 5);
-    expect(bearSpawnPeriod(10)).toBe(1.0);
-    expect(bearSpawnPeriod(100)).toBe(1.0);
+  it('bear spawn period decreases over time, clamped at 1.5', () => {
+    expect(bearSpawnPeriod(0)).toBe(3.0);
+    expect(bearSpawnPeriod(5)).toBeCloseTo(2.0, 5);
+    expect(bearSpawnPeriod(10)).toBe(1.5);
+    expect(bearSpawnPeriod(100)).toBe(1.5);
   });
 
   it('bear hp grows linearly with time', () => {
-    expect(bearHp(0)).toBe(70);
-    expect(bearHp(2)).toBe(80);
+    expect(bearHp(0)).toBe(50);
+    expect(bearHp(2)).toBe(56);
   });
 
-  it('bear damage to fence is clamped 10..20', () => {
-    expect(bearDamageFence(0)).toBe(10);
-    expect(bearDamageFence(5)).toBe(15);
-    expect(bearDamageFence(100)).toBe(20);
+  it('bear damage to fence is clamped 6..12', () => {
+    expect(bearDamageFence(0)).toBe(6);
+    expect(bearDamageFence(5)).toBeCloseTo(8.5, 5);
+    expect(bearDamageFence(100)).toBe(12);
   });
 });

@@ -32,7 +32,7 @@ function moveToward(bear, targetPos, dt) {
 
 export function spawnBearFromOutside(world) {
   const angle = Math.random() * Math.PI * 2;
-  const r = world.base.radius + 6;
+  const r = world.base.radius + BALANCE.bear.spawnDistance;
   const bear = spawnBear(world, {
     x: Math.cos(angle) * r,
     z: Math.sin(angle) * r,
