@@ -5,6 +5,11 @@ import { update as updateBear } from './systems/bear.js';
 import { update as updateFence } from './systems/fence.js';
 import { update as updateFire } from './systems/fire.js';
 import { update as updateMeat } from './systems/meat.js';
+import { update as updateCustomer } from './systems/customer.js';
+import { update as updateMoney } from './systems/money.js';
+import { createRegisterMesh, syncRegisterStack } from './render/register-mesh.js';
+import { createCustomerMesh } from './render/customer-mesh.js';
+import { createMoneyMesh } from './render/money-mesh.js';
 import { startLoop } from './loop.js';
 import { createScene, createRenderer } from './render/scene.js';
 import { createPlayerMesh } from './render/meshes.js';
@@ -46,9 +51,16 @@ const fireMesh = createFireMesh();
 fireMesh.position.set(world.fire.pos.x, 0, world.fire.pos.z);
 scene.add(fireMesh);
 
+// Register mesh
+const registerMesh = createRegisterMesh();
+registerMesh.position.set(world.register.pos.x, 0, world.register.pos.z);
+scene.add(registerMesh);
+
 // Bears + meat — managed dynamically each frame
 const bearMeshes = new Map();
 const meatMeshes = new Map();
+const customerMeshes = new Map();
+const moneyMeshes = new Map();
 
 setupJoystick(world);
 const hud = setupHud();
@@ -61,7 +73,7 @@ function autoSave(world) {
   if (saveTimer >= 5) { saveWorld(world); saveTimer = 0; }
 }
 
-const systems = [updateBear, updateFence, updateFire, updatePlayer, updateMeat];
+const systems = [updateBear, updateFence, updateFire, updateCustomer, updatePlayer, updateMeat, updateMoney];
 
 function syncEntityMeshes(entityArray, meshMap, scene, factory) {
   // Remove meshes for entities no longer present
@@ -109,6 +121,9 @@ function render(world) {
   syncEntityMeshes(world.meatRaw, meatMeshes, scene, () => createMeatMesh('raw'));
   syncEntityMeshes(world.meatCooked, meatMeshes, scene, () => createMeatMesh('cooked'));
 
+  syncEntityMeshes(world.customers, customerMeshes, scene, () => createCustomerMesh());
+  syncEntityMeshes(world.register.moneyPiles, moneyMeshes, scene, () => createMoneyMesh());
+  syncRegisterStack(registerMesh, world.register.counterStack);
   updateCamera(camera, world, world.time.dt);
   tickFireFlicker(fireMesh, world.time.elapsed);
   hud.update(world);
