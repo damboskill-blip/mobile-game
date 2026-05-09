@@ -43,6 +43,7 @@ const PAD_TEXT = {
   'hire-porter': '📦 Porter',
   'hire-repairman': '🔧 Repairman',
   'build-tower': '🏹 Tower',
+  'hire-tanner': '🦌 Tanner',
 };
 
 export function setupPadLabels(container = document.body) {

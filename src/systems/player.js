@@ -27,9 +27,35 @@ function tryTransferStackToCounter(world) {
   p.stack.cooked = 0;
 }
 
+function tryTransferStackToTannery(world) {
+  const p = world.player;
+  if (!world.tannery.pos) return;
+  if (p.stack.pelt <= 0) return;
+  const dx = world.tannery.pos.x - p.pos.x;
+  const dz = world.tannery.pos.z - p.pos.z;
+  if (Math.hypot(dx, dz) > BALANCE.tannery.transferRange) return;
+  const slotsFree = world.tannery.capacity - world.tannery.processing.length;
+  const toTransfer = Math.min(slotsFree, p.stack.pelt);
+  for (let i = 0; i < toTransfer; i++) {
+    world.tannery.processing.push({ id: ++world.nextId, timer: BALANCE.tannery.tanTime });
+  }
+  p.stack.pelt -= toTransfer;
+}
+
+function tryTransferStackToLeatherCounter(world) {
+  const p = world.player;
+  if (!world.leatherCounter.pos) return;
+  if (p.stack.leather <= 0) return;
+  const dx = world.leatherCounter.pos.x - p.pos.x;
+  const dz = world.leatherCounter.pos.z - p.pos.z;
+  if (Math.hypot(dx, dz) > BALANCE.leatherCounter.transferRange) return;
+  world.leatherCounter.counterStack += p.stack.leather;
+  p.stack.leather = 0;
+}
+
 function dropStack(world) {
   const p = world.player;
-  const total = p.stack.raw + p.stack.cooked;
+  const total = p.stack.raw + p.stack.cooked + p.stack.pelt + p.stack.leather;
   if (total <= 0) return;
   let i = 0;
   function dropPiece(arr) {
@@ -44,8 +70,9 @@ function dropStack(world) {
   }
   for (let j = 0; j < p.stack.raw; j++) dropPiece(world.meatRaw);
   for (let j = 0; j < p.stack.cooked; j++) dropPiece(world.meatCooked);
-  p.stack.raw = 0;
-  p.stack.cooked = 0;
+  for (let j = 0; j < p.stack.pelt; j++) dropPiece(world.pelts);
+  for (let j = 0; j < p.stack.leather; j++) dropPiece(world.leather);
+  p.stack.raw = 0; p.stack.cooked = 0; p.stack.pelt = 0; p.stack.leather = 0;
 }
 
 export function update(world, dt) {
@@ -92,6 +119,8 @@ export function update(world, dt) {
   // Try to deposit raw stack onto fire
   tryTransferStackToFire(world);
   tryTransferStackToCounter(world);
+  tryTransferStackToTannery(world);
+  tryTransferStackToLeatherCounter(world);
 
   // Auto-attack
   if (p.axe.cooldownTimer > 0) p.axe.cooldownTimer -= dt;

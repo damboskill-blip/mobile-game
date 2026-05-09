@@ -5,6 +5,7 @@ const cookHatMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
 const cashierShirtMat = new THREE.MeshLambertMaterial({ color: 0x3a3aa0 }); // navy
 const PORTER_SHIRT = 0xff8800;
 const REPAIRMAN_SHIRT = 0x4a78c8;
+const TANNER_SHIRT = 0x6a4a2a;
 const headMat = new THREE.MeshLambertMaterial({ color: 0xe8c8a0 });
 
 export function createEmployeeMesh(type) {
@@ -17,6 +18,8 @@ export function createEmployeeMesh(type) {
     shirtMat = cashierShirtMat;
   } else if (type === 'porter') {
     shirtMat = new THREE.MeshLambertMaterial({ color: PORTER_SHIRT });
+  } else if (type === 'tanner') {
+    shirtMat = new THREE.MeshLambertMaterial({ color: TANNER_SHIRT });
   } else {
     shirtMat = new THREE.MeshLambertMaterial({ color: REPAIRMAN_SHIRT });
   }
@@ -63,6 +66,16 @@ export function createEmployeeMesh(type) {
     );
     belt.position.y = 0.6;
     group.add(belt);
+  }
+
+  // Tanner gets a brown apron
+  if (type === 'tanner') {
+    const apron = new THREE.Mesh(
+      new THREE.BoxGeometry(0.55, 0.6, 0.05),
+      new THREE.MeshLambertMaterial({ color: 0x4a2a14 })
+    );
+    apron.position.set(0, 0.7, 0.35);
+    group.add(apron);
   }
 
   return group;

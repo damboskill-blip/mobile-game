@@ -29,6 +29,13 @@ function applyEffect(world, pad) {
       pos: { x: 0, z: 0 },
       rot: 0, state: 'idle', target: null,
     });
+  } else if (pad.type === 'hire-tanner') {
+    world.employees.push({
+      id: ++world.nextId, type: 'tanner',
+      pos: { x: world.tannery.pos.x + 1, z: world.tannery.pos.z + 1 },
+      rot: 0, state: 'idle', target: null,
+      stack: { pelt: 0, max: BALANCE.worker.tannerStackMax },
+    });
   } else if (pad.type === 'build-tower') {
     if (pad.level === 0) {
       // Build new tower L1

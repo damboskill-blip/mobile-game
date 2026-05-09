@@ -47,6 +47,9 @@ export const BALANCE = {
     queueMax: 5,
     queueOffset: 1.2,
     spawnRingRadius: 16,
+    premiumPricePerLeather: 40,
+    premiumSpawnInterval: 3.0,
+    premiumSpawnRingRadius: 16,
   },
   pads: {
     repairFenceCost: 100,
@@ -58,6 +61,15 @@ export const BALANCE = {
     hirePorterBaseCost: 400,
     hireRepairmanBaseCost: 300,
     buildTowerBaseCost: 1200,
+    hireTannerBaseCost: 600,
+  },
+  tannery: {
+    capacity: 5,
+    tanTime: 3.5,           // longer than meat cookTimer for balance
+    transferRange: 1.5,
+  },
+  leatherCounter: {
+    transferRange: 1.5,
   },
   tower: {
     levels: [
@@ -73,6 +85,8 @@ export const BALANCE = {
     repairmanSpeed: 4.0,
     repairmanRate: 25,             // hp restored per second when adjacent to fence
     repairmanReachRadius: 1.2,
+    tannerSpeed: 4.5,
+    tannerStackMax: 5,
   },
 };
 

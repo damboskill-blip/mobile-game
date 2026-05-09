@@ -21,7 +21,7 @@ describe('createWorld', () => {
     expect(w.player.hpMax).toBe(BALANCE.player.hpMax);
     expect(w.player.state).toBe('alive');
     expect(w.player.respawnTimer).toBe(0);
-    expect(w.player.stack).toEqual({ raw: 0, cooked: 0 });
+    expect(w.player.stack).toEqual({ raw: 0, cooked: 0, pelt: 0, leather: 0 });
     expect(w.player.input).toEqual({ move: { x: 0, z: 0 } });
   });
 
@@ -30,7 +30,10 @@ describe('createWorld', () => {
     expect(w.bears).toEqual([]);
     expect(w.meatRaw).toEqual([]);
     expect(w.meatCooked).toEqual([]);
+    expect(w.pelts).toEqual([]);
+    expect(w.leather).toEqual([]);
     expect(w.customers).toEqual([]);
+    expect(w.premiumCustomers).toEqual([]);
     expect(w.employees).toEqual([]);
     expect(w.towers).toEqual([]);
   });
@@ -46,13 +49,13 @@ describe('createWorld', () => {
     expect(Math.hypot(dxFromFire, dzFromFire)).toBeGreaterThan(3);
   });
 
-  it('upgrade pads are pre-placed: 8 pads (4 hire + 4 build-tower) with correct shape', () => {
+  it('upgrade pads are pre-placed: 9 pads (5 hire + 4 build-tower) with correct shape', () => {
     const w = createWorld();
-    expect(w.upgradePads).toHaveLength(8);
+    expect(w.upgradePads).toHaveLength(9);
     const types = w.upgradePads.map(p => p.type).sort();
     expect(types).toEqual([
       'build-tower', 'build-tower', 'build-tower', 'build-tower',
-      'hire-cashier', 'hire-cook', 'hire-porter', 'hire-repairman',
+      'hire-cashier', 'hire-cook', 'hire-porter', 'hire-repairman', 'hire-tanner',
     ]);
     for (const p of w.upgradePads) {
       expect(p.deposited).toBe(0);
@@ -210,5 +213,21 @@ describe('world helpers', () => {
       // each drop is within ~1 unit of bear's death position
       expect(Math.hypot(m.pos.x - 10, m.pos.z - 10)).toBeLessThan(1.5);
     }
+    expect(w.pelts).toHaveLength(1);
+    expect(Math.hypot(w.pelts[0].pos.x - 10, w.pelts[0].pos.z - 10)).toBeLessThan(1.5);
+  });
+
+  it('tannery is placed inside base at correct position', () => {
+    const w = createWorld();
+    expect(w.tannery.pos).toEqual({ x: 3, z: -7 });
+    const dist = Math.hypot(w.tannery.pos.x, w.tannery.pos.z);
+    expect(dist).toBeLessThan(w.base.radius);
+  });
+
+  it('leather counter is placed inside base at correct position', () => {
+    const w = createWorld();
+    expect(w.leatherCounter.pos).toEqual({ x: -3, z: -7 });
+    const dist = Math.hypot(w.leatherCounter.pos.x, w.leatherCounter.pos.z);
+    expect(dist).toBeLessThan(w.base.radius);
   });
 });

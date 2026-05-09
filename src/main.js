@@ -4,11 +4,14 @@ import { update as updatePlayer } from './systems/player.js';
 import { update as updateBear } from './systems/bear.js';
 import { update as updateFence } from './systems/fence.js';
 import { update as updateFire } from './systems/fire.js';
+import { update as updateTannery } from './systems/tannery.js';
 import { update as updateMeat } from './systems/meat.js';
 import { update as updateCustomer } from './systems/customer.js';
+import { update as updateLeatherCustomer } from './systems/leather-customer.js';
 import { update as updateMoney } from './systems/money.js';
 import { createRegisterMesh, syncRegisterStack } from './render/register-mesh.js';
 import { createCustomerMesh } from './render/customer-mesh.js';
+import { createPremiumCustomerMesh } from './render/customer-mesh.js';
 import { createMoneyMesh } from './render/money-mesh.js';
 import { startLoop } from './loop.js';
 import { createScene, createRenderer } from './render/scene.js';
@@ -17,6 +20,10 @@ import { createFenceSegmentMesh, applyFenceSegmentTransform } from './render/fen
 import { createFireMesh, tickFireFlicker } from './render/fire-mesh.js';
 import { createBearMesh } from './render/bear-mesh.js';
 import { createMeatMesh } from './render/meat-mesh.js';
+import { createPeltMesh } from './render/pelt-mesh.js';
+import { createLeatherMesh } from './render/leather-mesh.js';
+import { createTanneryMesh } from './render/tannery-mesh.js';
+import { createLeatherCounterMesh, syncLeatherCounterStack } from './render/leather-counter-mesh.js';
 import { createStackGroups, syncStackMesh } from './render/stack-mesh.js';
 import { createCamera, updateCamera, handleResize } from './camera.js';
 import { setupJoystick } from './input.js';
@@ -62,6 +69,16 @@ const registerMesh = createRegisterMesh();
 registerMesh.position.set(world.register.pos.x, 0, world.register.pos.z);
 scene.add(registerMesh);
 
+// Tannery mesh
+const tanneryMesh = createTanneryMesh();
+tanneryMesh.position.set(world.tannery.pos.x, 0, world.tannery.pos.z);
+scene.add(tanneryMesh);
+
+// Leather counter mesh
+const leatherCounterMesh = createLeatherCounterMesh();
+leatherCounterMesh.position.set(world.leatherCounter.pos.x, 0, world.leatherCounter.pos.z);
+scene.add(leatherCounterMesh);
+
 // Pad meshes
 const padMeshes = new Map();
 for (const pad of world.upgradePads) {
@@ -80,6 +97,10 @@ const bearMeshes = new Map();
 const meatMeshes = new Map();
 const customerMeshes = new Map();
 const moneyMeshes = new Map();
+const peltMeshes = new Map();
+const leatherMeshes = new Map();
+const premiumCustomerMeshes = new Map();
+const leatherMoneyMeshes = new Map();
 
 setupJoystick(world);
 const hud = setupHud();
@@ -92,7 +113,7 @@ function autoSave(world) {
   if (saveTimer >= 5) { saveWorld(world); saveTimer = 0; }
 }
 
-const systems = [updateBear, updateFence, updateFire, updateCustomer, updatePlayer, updateMeat, updateMoney, updateUpgradePad, updateEmployee, updateTower];
+const systems = [updateBear, updateFence, updateFire, updateTannery, updateCustomer, updateLeatherCustomer, updatePlayer, updateMeat, updateMoney, updateUpgradePad, updateEmployee, updateTower];
 
 function syncEntityMeshes(entityArray, meshMap, scene, factory) {
   // Remove meshes for entities no longer present
@@ -143,6 +164,11 @@ function render(world) {
   syncEntityMeshes(world.customers, customerMeshes, scene, () => createCustomerMesh());
   syncEntityMeshes(world.register.moneyPiles, moneyMeshes, scene, () => createMoneyMesh());
   syncRegisterStack(registerMesh, world.register.counterStack);
+  syncEntityMeshes(world.pelts, peltMeshes, scene, () => createPeltMesh());
+  syncEntityMeshes(world.leather, leatherMeshes, scene, () => createLeatherMesh());
+  syncEntityMeshes(world.premiumCustomers, premiumCustomerMeshes, scene, () => createPremiumCustomerMesh());
+  syncEntityMeshes(world.leatherCounter.moneyPiles, leatherMoneyMeshes, scene, () => createMoneyMesh());
+  syncLeatherCounterStack(leatherCounterMesh, world.leatherCounter.counterStack);
   for (const pad of world.upgradePads) {
     const m = padMeshes.get(pad.id);
     if (m) syncPadMesh(m, pad);

@@ -142,6 +142,50 @@ export function currentBuyDuration(world) {
     : BALANCE.customer.buyDuration;
 }
 
+function handleTanner(world, emp, dt) {
+  if (emp.state === 'idle') {
+    if (emp.stack.pelt >= emp.stack.max) {
+      emp.state = 'going-to-tannery';
+      return;
+    }
+    let nearest = null, nd = Infinity;
+    for (const piece of world.pelts) {
+      const d = Math.hypot(piece.pos.x - emp.pos.x, piece.pos.z - emp.pos.z);
+      if (d < nd) { nearest = piece; nd = d; }
+    }
+    if (nearest) {
+      emp.target = nearest.id;
+      emp.state = 'going-to-pelt';
+    } else if (emp.stack.pelt > 0) {
+      emp.state = 'going-to-tannery';
+    }
+  } else if (emp.state === 'going-to-pelt') {
+    const piece = world.pelts.find(p => p.id === emp.target);
+    if (!piece) { emp.state = 'idle'; emp.target = null; return; }
+    moveToward(emp, piece.pos.x, piece.pos.z, dt, BALANCE.worker.tannerSpeed);
+    const d = Math.hypot(emp.pos.x - piece.pos.x, emp.pos.z - piece.pos.z);
+    if (d <= 0.8) {
+      const idx = world.pelts.indexOf(piece);
+      if (idx >= 0) world.pelts.splice(idx, 1);
+      emp.stack.pelt++;
+      emp.target = null;
+      emp.state = 'idle';
+    }
+  } else if (emp.state === 'going-to-tannery') {
+    moveToward(emp, world.tannery.pos.x, world.tannery.pos.z, dt, BALANCE.worker.tannerSpeed);
+    const d = Math.hypot(emp.pos.x - world.tannery.pos.x, emp.pos.z - world.tannery.pos.z);
+    if (d <= BALANCE.tannery.transferRange) {
+      const slotsFree = world.tannery.capacity - world.tannery.processing.length;
+      const toTransfer = Math.min(slotsFree, emp.stack.pelt);
+      for (let i = 0; i < toTransfer; i++) {
+        world.tannery.processing.push({ id: ++world.nextId, timer: BALANCE.tannery.tanTime });
+      }
+      emp.stack.pelt -= toTransfer;
+      emp.state = 'idle';
+    }
+  }
+}
+
 export function update(world, dt) {
   for (const emp of world.employees) {
     if (emp.type === 'cook') {
@@ -182,6 +226,8 @@ export function update(world, dt) {
       handlePorter(world, emp, dt);
     } else if (emp.type === 'repairman') {
       handleRepairman(world, emp, dt);
+    } else if (emp.type === 'tanner') {
+      handleTanner(world, emp, dt);
     }
     // cashier has no AI
   }

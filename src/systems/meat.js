@@ -25,6 +25,30 @@ export function update(world, dt) {
       world.meatCooked.splice(i, 1);
     }
   }
+  // Pelts
+  for (let i = world.pelts.length - 1; i >= 0; i--) {
+    const piece = world.pelts[i];
+    piece.despawnTimer -= dt;
+    if (piece.despawnTimer <= 0) {
+      world.pelts.splice(i, 1);
+      continue;
+    }
+    if (tryPickup(world, piece, 'pelt')) {
+      world.pelts.splice(i, 1);
+    }
+  }
+  // Leather
+  for (let i = world.leather.length - 1; i >= 0; i--) {
+    const piece = world.leather[i];
+    piece.despawnTimer -= dt;
+    if (piece.despawnTimer <= 0) {
+      world.leather.splice(i, 1);
+      continue;
+    }
+    if (tryPickup(world, piece, 'leather')) {
+      world.leather.splice(i, 1);
+    }
+  }
 }
 
 function tryPickup(world, piece, type) {
@@ -33,6 +57,8 @@ function tryPickup(world, piece, type) {
   const d = Math.hypot(piece.pos.x - p.pos.x, piece.pos.z - p.pos.z);
   if (d > BALANCE.player.pickupRadius) return false;
   if (type === 'raw') p.stack.raw++;
-  else p.stack.cooked++;
+  else if (type === 'cooked') p.stack.cooked++;
+  else if (type === 'pelt') p.stack.pelt++;
+  else if (type === 'leather') p.stack.leather++;
   return true;
 }
