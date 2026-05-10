@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createInstance, enableShadows } from '../assets.js';
+import { createInstance, enableShadows, poseArmsDown } from '../assets.js';
 
 const PLAYER_SCALE = 1.0;
 
@@ -9,11 +9,11 @@ export function createPlayerMesh() {
     const group = new THREE.Group();
     const model = inst.scene;
     enableShadows(model);
+    poseArmsDown(model);
     model.scale.setScalar(PLAYER_SCALE);
-    model.rotation.y = Math.PI;
+    // Quaternius modular_men face +Z natively; the entity rot already aligns,
+    // no manual flip needed.
     group.add(model);
-    // No axeGroup attachment for GLTF path — the model already has accessories.
-    // updateAxeSwing() in animations.js no-ops when userData.axeGroup is missing.
     return group;
   }
   return createProceduralPlayerMesh();

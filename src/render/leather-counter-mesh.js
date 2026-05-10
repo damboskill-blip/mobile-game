@@ -11,7 +11,7 @@ export function createLeatherCounterMesh() {
   const inst = createInstance('leatherCounter');
   if (inst) {
     enableShadows(inst.scene);
-    inst.scene.scale.setScalar(1.5);
+    inst.scene.scale.setScalar(2.2);
     group.add(inst.scene);
   } else {
     group.add(createProceduralLeatherCounter());
@@ -19,7 +19,7 @@ export function createLeatherCounterMesh() {
 
   // Leather stack above the stand (always procedural — gameplay UI element)
   const leatherStack = new THREE.Group();
-  leatherStack.position.set(0, 1.2, 0);
+  leatherStack.position.set(0, 1.7, 0);
   group.add(leatherStack);
   group.userData.leatherStack = leatherStack;
 

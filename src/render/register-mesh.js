@@ -11,7 +11,7 @@ export function createRegisterMesh() {
   const inst = createInstance('register');
   if (inst) {
     enableShadows(inst.scene);
-    inst.scene.scale.setScalar(1.5);
+    inst.scene.scale.setScalar(2.2);
     group.add(inst.scene);
   } else {
     group.add(createProceduralRegister());
@@ -19,7 +19,7 @@ export function createRegisterMesh() {
 
   // Counter stack above the stand (always procedural — gameplay UI element)
   const counterStack = new THREE.Group();
-  counterStack.position.set(0, 1.2, 0);
+  counterStack.position.set(0, 1.7, 0);
   group.add(counterStack);
   group.userData.cookedStack = counterStack;
 
