@@ -36,6 +36,8 @@ import { createTowerMesh, applyTowerLevel, setTowerRotationToTarget } from './re
 import { setupHud, setupPadLabels } from './ui.js';
 import { createSmokeEmitter, updateSmoke } from './render/smoke.js';
 import { triggerShake, applyShake } from './render/camera-shake.js';
+import { applyWalkBob } from './render/animations.js';
+import { spawnHitSparks, spawnMoneyPop, updateParticles } from './render/particles.js';
 
 const canvas = document.getElementById('game');
 const world = createWorld();
@@ -115,6 +117,10 @@ const leatherMeshes = new Map();
 const premiumCustomerMeshes = new Map();
 const leatherMoneyMeshes = new Map();
 
+// Particle event tracking
+const bearHpLast = new Map();
+const moneyPosLast = new Map();
+
 setupJoystick(world);
 const hud = setupHud();
 
@@ -156,6 +162,7 @@ function render(world) {
     playerMesh.visible = true;
     playerMesh.position.set(world.player.pos.x, 0, world.player.pos.z);
     playerMesh.rotation.y = world.player.rot;
+    applyWalkBob(playerMesh, world.player.pos.x, world.player.pos.z, world.time.dt);
   } else {
     playerMesh.visible = false;
   }
@@ -170,23 +177,71 @@ function render(world) {
   // Bears
   syncEntityMeshes(world.bears, bearMeshes, scene, () => createBearMesh());
 
+  // Bear walk-bob
+  for (const b of world.bears) {
+    const m = bearMeshes.get(b.id);
+    if (m) applyWalkBob(m, b.pos.x, b.pos.z, world.time.dt);
+  }
+
+  // Bear damage sparks
+  for (const b of world.bears) {
+    const last = bearHpLast.get(b.id);
+    if (last !== undefined && b.hp < last) {
+      spawnHitSparks(scene, b.pos);
+    }
+    bearHpLast.set(b.id, b.hp);
+  }
+  // Cleanup map for dead bears
+  for (const id of bearHpLast.keys()) {
+    if (!world.bears.find(b => b.id === id)) bearHpLast.delete(id);
+  }
+
   // Meat — raw and cooked, both keyed by id (no overlap)
   syncEntityMeshes(world.meatRaw, meatRawMeshes, scene, () => createMeatMesh('raw'));
   syncEntityMeshes(world.meatCooked, meatCookedMeshes, scene, () => createMeatMesh('cooked'));
 
   syncEntityMeshes(world.customers, customerMeshes, scene, () => createCustomerMesh());
+  for (const c of world.customers) {
+    const m = customerMeshes.get(c.id);
+    if (m) applyWalkBob(m, c.pos.x, c.pos.z, world.time.dt);
+  }
+
   syncEntityMeshes(world.register.moneyPiles, moneyMeshes, scene, () => createMoneyMesh());
   syncRegisterStack(registerMesh, world.register.counterStack);
   syncEntityMeshes(world.pelts, peltMeshes, scene, () => createPeltMesh());
   syncEntityMeshes(world.leather, leatherMeshes, scene, () => createLeatherMesh());
+
   syncEntityMeshes(world.premiumCustomers, premiumCustomerMeshes, scene, () => createPremiumCustomerMesh());
+  for (const c of world.premiumCustomers) {
+    const m = premiumCustomerMeshes.get(c.id);
+    if (m) applyWalkBob(m, c.pos.x, c.pos.z, world.time.dt);
+  }
+
   syncEntityMeshes(world.leatherCounter.moneyPiles, leatherMoneyMeshes, scene, () => createMoneyMesh());
   syncLeatherCounterStack(leatherCounterMesh, world.leatherCounter.counterStack);
+
+  // Money-pile pickup detection (both registers)
+  const allPiles = [...world.register.moneyPiles, ...world.leatherCounter.moneyPiles];
+  const liveIds = new Set(allPiles.map(p => p.id));
+  for (const [id, pos] of moneyPosLast) {
+    if (!liveIds.has(id)) {
+      spawnMoneyPop(scene, pos);
+      moneyPosLast.delete(id);
+    }
+  }
+  for (const p of allPiles) {
+    moneyPosLast.set(p.id, { x: p.pos.x, z: p.pos.z });
+  }
+
   for (const pad of world.upgradePads) {
     const m = padMeshes.get(pad.id);
     if (m) syncPadMesh(m, pad);
   }
   syncEntityMeshes(world.employees, employeeMeshes, scene, (e) => createEmployeeMesh(e.type));
+  for (const e of world.employees) {
+    const m = employeeMeshes.get(e.id);
+    if (m) applyWalkBob(m, e.pos.x, e.pos.z, world.time.dt);
+  }
   syncEntityMeshes(world.towers, towerMeshes, scene, () => createTowerMesh());
   for (const tower of world.towers) {
     const m = towerMeshes.get(tower.id);
@@ -208,6 +263,7 @@ function render(world) {
     world.pendingShake = 0;
   }
   applyShake(camera, world.time.dt);
+  updateParticles(scene, world.time.dt);
   hud.update(world);
   renderer.render(scene, camera);
 }

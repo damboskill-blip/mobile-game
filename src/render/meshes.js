@@ -19,6 +19,26 @@ export function createPlayerMesh() {
   head.castShadow = true;
   group.add(head);
 
+  // Arms: two cylinders on the sides of the body
+  const limbMat = new THREE.MeshLambertMaterial({ color: 0xc8a878 });
+  const armGeom = new THREE.CylinderGeometry(0.12, 0.12, 0.55, 6);
+  for (const x of [-0.42, 0.42]) {
+    const arm = new THREE.Mesh(armGeom, limbMat);
+    arm.position.set(x, 0.95, 0);
+    arm.castShadow = true;
+    group.add(arm);
+  }
+
+  // Legs: two cylinders below body
+  const pantsMat = new THREE.MeshLambertMaterial({ color: 0x4a3a26 });
+  const legGeom = new THREE.CylinderGeometry(0.14, 0.14, 0.5, 6);
+  for (const x of [-0.18, 0.18]) {
+    const leg = new THREE.Mesh(legGeom, pantsMat);
+    leg.position.set(x, 0.25, 0);
+    leg.castShadow = true;
+    group.add(leg);
+  }
+
   // Axe — visible cue that player has weapon, even at foundation phase
   const axeHandle = new THREE.Mesh(
     new THREE.CylinderGeometry(0.04, 0.04, 0.6, 6),
