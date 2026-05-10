@@ -48,17 +48,29 @@ export function createFireMesh() {
   group.userData.flameOuter = outerFlame;
   group.userData.flameInner = innerFlame;
 
-  // Queue stack: raw meat boxes stacked beside the fire
+  // Queue stack: raw meat boxes stacked on a small wooden table beside the fire
   const queueStack = new THREE.Group();
-  queueStack.position.set(0.8, 0, 0);
+  queueStack.position.set(1.6, 0, 0);
+  // Small wooden table to make the stack obviously a "waiting pile"
+  const table = new THREE.Mesh(
+    new THREE.BoxGeometry(0.7, 0.5, 0.7),
+    woodMat
+  );
+  table.position.y = 0.25;
+  table.castShadow = true;
+  queueStack.add(table);
+  // The actual stack of meat sits ABOVE the table
+  const stackGroup = new THREE.Group();
+  stackGroup.position.y = 0.5;
+  queueStack.add(stackGroup);
   group.add(queueStack);
-  group.userData.queueStack = queueStack;
+  group.userData.queueStackGroup = stackGroup;
 
   return group;
 }
 
 export function syncFireQueueStack(group, count) {
-  const stack = group.userData.queueStack;
+  const stack = group.userData.queueStackGroup;
   if (!stack) return;
   const display = Math.min(count, 12);
   while (stack.children.length > display) stack.children.pop();
@@ -68,7 +80,7 @@ export function syncFireQueueStack(group, count) {
     stack.add(piece);
   }
   for (let i = 0; i < stack.children.length; i++) {
-    stack.children[i].position.set(0, 0.1 + i * QUEUE_PIECE_H, 0);
+    stack.children[i].position.set(0, i * QUEUE_PIECE_H, 0);
   }
 }
 
