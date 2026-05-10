@@ -35,6 +35,8 @@ import { createEmployeeMesh } from './render/employee-mesh.js';
 import { createTowerMesh, applyTowerLevel, setTowerRotationToTarget } from './render/tower-mesh.js';
 import { setupHud, setupPadLabels } from './ui.js';
 import { createSmokeEmitter, updateSmoke } from './render/smoke.js';
+import { createSuperviseRing } from './render/supervise-ring.js';
+import { BALANCE } from './balance.js';
 import { triggerShake, applyShake } from './render/camera-shake.js';
 import { applyWalkBob, triggerAxeSwing, updateAxeSwing } from './render/animations.js';
 import { spawnHitSparks, spawnMoneyPop, updateParticles } from './render/particles.js';
@@ -75,6 +77,11 @@ const fireSmoke = createSmokeEmitter();
 fireSmoke.position.set(world.fire.pos.x, 0, world.fire.pos.z);
 scene.add(fireSmoke);
 
+// Supervise zone ring around fire
+const fireRing = createSuperviseRing(BALANCE.fire.superviseRadius);
+fireRing.position.set(world.fire.pos.x, 0, world.fire.pos.z);
+scene.add(fireRing);
+
 // Register mesh
 const registerMesh = createRegisterMesh();
 registerMesh.position.set(world.register.pos.x, 0, world.register.pos.z);
@@ -89,6 +96,11 @@ scene.add(tanneryMesh);
 const tannerySmoke = createSmokeEmitter();
 tannerySmoke.position.set(world.tannery.pos.x, 0, world.tannery.pos.z);
 scene.add(tannerySmoke);
+
+// Supervise zone ring around tannery
+const tanneryRing = createSuperviseRing(BALANCE.tannery.superviseRadius);
+tanneryRing.position.set(world.tannery.pos.x, 0, world.tannery.pos.z);
+scene.add(tanneryRing);
 
 // Leather counter mesh
 const leatherCounterMesh = createLeatherCounterMesh();
