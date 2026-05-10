@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { getWoodTexture } from './textures.js';
 
 const LOG_COUNT = 12;    // logs per segment — covers chord ~4.6 of 4.68 between centers
 const LOG_HEIGHT = 1.4;
@@ -6,7 +7,13 @@ const LOG_RADIUS = 0.18;
 const LOG_SPACING = 0.42;
 const SEGMENT_ARC_LENGTH = 4.7; // approximately the chord at radius 12 / 16 segments
 
-const woodMat = new THREE.MeshLambertMaterial({ color: 0x6b3f1d });
+function makeWoodMat() {
+  const woodTex = getWoodTexture();
+  woodTex.repeat.set(1, 2);
+  return new THREE.MeshLambertMaterial({ map: woodTex, color: 0xddc8a8 });
+}
+
+const woodMat = makeWoodMat();
 
 export function createFenceSegmentMesh() {
   const group = new THREE.Group();

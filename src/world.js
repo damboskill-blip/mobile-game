@@ -36,6 +36,7 @@ export function createWorld({ prefillCustomers = true } = {}) {
     playerDamageCD: 0,
     customerSpawnTimer: 0,
     premiumCustomerSpawnTimer: 0,
+    pendingShake: 0,
   };
   if (prefillCustomers) prefillCustomerQueues(world);
   return world;
