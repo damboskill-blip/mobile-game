@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { loadAssets } from './assets.js';
 import { createWorld, saveWorld, loadWorld } from './world.js';
 import { update as updatePlayer } from './systems/player.js';
 import { update as updateBear } from './systems/bear.js';
@@ -42,6 +43,21 @@ import { applyWalkBob, triggerAxeSwing, updateAxeSwing } from './render/animatio
 import { spawnHitSparks, spawnMoneyPop, updateParticles } from './render/particles.js';
 import { sfxChop, sfxKill, sfxPickup, sfxMoney, sfxSale, sfxDeposit, sfxHire, sfxFenceHit } from './audio.js';
 import { setupHpBars } from './render/hp-bars.js';
+
+async function start() {
+  // Show a brief "Loading…" overlay
+  const loadingEl = document.createElement('div');
+  loadingEl.textContent = 'Loading…';
+  loadingEl.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#1a1410;color:#ddc8a8;font-size:24px;z-index:9999;font-family:sans-serif;';
+  document.body.appendChild(loadingEl);
+
+  try {
+    await loadAssets();
+  } catch (e) {
+    console.warn('Asset load failed, falling back to procedural meshes', e);
+  } finally {
+    loadingEl.remove();
+  }
 
 const canvas = document.getElementById('game');
 const world = createWorld();
@@ -213,10 +229,30 @@ function render(world) {
   // Bears
   syncEntityMeshes(world.bears, bearMeshes, scene, () => createBearMesh());
 
-  // Bear walk-bob
+  // Bear walk-bob + skeletal animation
   for (const b of world.bears) {
     const m = bearMeshes.get(b.id);
-    if (m) applyWalkBob(m, b.pos.x, b.pos.z, world.time.dt);
+    if (!m) continue;
+    applyWalkBob(m, b.pos.x, b.pos.z, world.time.dt);
+
+    if (m.userData.isFox && m.userData.mixer) {
+      m.userData.mixer.update(world.time.dt);
+      const actions = m.userData.actions;
+      const isMoving =
+        b.state === 'approaching' || b.state === 'through';
+      const isAttacking =
+        b.state === 'attacking-fence' || b.state === 'attacking-player';
+      // Cross-fade weights toward target
+      const target = {
+        idle: isAttacking ? 1 : 0,
+        walk: isMoving ? 1 : 0,
+        run: 0,
+      };
+      const k = Math.min(1, world.time.dt * 6);
+      actions.idle.weight += (target.idle - actions.idle.weight) * k;
+      actions.walk.weight += (target.walk - actions.walk.weight) * k;
+      actions.run.weight += (target.run - actions.run.weight) * k;
+    }
   }
 
   // Bear damage sparks
@@ -346,3 +382,6 @@ function render(world) {
 startLoop(world, systems, render, autoSave);
 
 window.addEventListener('pagehide', () => saveWorld(world));
+} // end start()
+
+start();
