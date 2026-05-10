@@ -40,6 +40,8 @@ import { BALANCE } from './balance.js';
 import { triggerShake, applyShake } from './render/camera-shake.js';
 import { applyWalkBob, triggerAxeSwing, updateAxeSwing } from './render/animations.js';
 import { spawnHitSparks, spawnMoneyPop, updateParticles } from './render/particles.js';
+import { sfxChop, sfxKill, sfxPickup, sfxMoney, sfxSale, sfxDeposit, sfxHire, sfxFenceHit } from './audio.js';
+import { setupHpBars } from './render/hp-bars.js';
 
 const canvas = document.getElementById('game');
 const world = createWorld();
@@ -135,8 +137,18 @@ const leatherMoneyMeshes = new Map();
 const bearHpLast = new Map();
 const moneyPosLast = new Map();
 
+// SFX per-frame diff tracking
+const lastBearIds = new Set();
+const lastEmployeeIds = new Set();
+let lastStackTotal = 0;
+let lastRegisterStack = 0;
+let lastLeatherStack = 0;
+let lastDepositSum = 0;
+let depositSfxCD = 0;
+
 setupJoystick(world);
 const hud = setupHud();
+const hpBars = setupHpBars();
 
 window.addEventListener('resize', () => handleResize(camera, renderer));
 
@@ -187,6 +199,7 @@ function render(world) {
   // Axe swing detection: cooldownTimer just jumped from 0 to >0 means attack fired
   if (world.player.axe.cooldownTimer > lastAxeCD + 0.01) {
     triggerAxeSwing(playerMesh);
+    sfxChop();
   }
   lastAxeCD = world.player.axe.cooldownTimer;
   updateAxeSwing(playerMesh, world.time.dt);
@@ -249,6 +262,7 @@ function render(world) {
   for (const [id, pos] of moneyPosLast) {
     if (!liveIds.has(id)) {
       spawnMoneyPop(scene, pos);
+      sfxMoney();
       moneyPosLast.delete(id);
     }
   }
@@ -285,10 +299,46 @@ function render(world) {
   updateSmoke(tannerySmoke, world.time.dt);
   if (world.pendingShake > 0) {
     triggerShake(world.pendingShake, 0.2);
+    sfxFenceHit();
     world.pendingShake = 0;
   }
   applyShake(camera, world.time.dt);
   updateParticles(scene, world.time.dt);
+
+  // SFX diff detection
+  // Bear kills
+  const currentBearIds = new Set(world.bears.map(b => b.id));
+  for (const oldId of lastBearIds) if (!currentBearIds.has(oldId)) sfxKill();
+  lastBearIds.clear();
+  for (const id of currentBearIds) lastBearIds.add(id);
+
+  // Pickups (any player stack value increased)
+  const stackTotal = world.player.stack.raw + world.player.stack.cooked + world.player.stack.pelt + world.player.stack.leather;
+  if (stackTotal > lastStackTotal) sfxPickup();
+  lastStackTotal = stackTotal;
+
+  // Sales
+  if (world.register.counterStack < lastRegisterStack) sfxSale();
+  lastRegisterStack = world.register.counterStack;
+  if (world.leatherCounter.counterStack < lastLeatherStack) sfxSale();
+  lastLeatherStack = world.leatherCounter.counterStack;
+
+  // Hires
+  const currentEmpIds = new Set(world.employees.map(e => e.id));
+  for (const id of currentEmpIds) if (!lastEmployeeIds.has(id)) sfxHire();
+  lastEmployeeIds.clear();
+  for (const id of currentEmpIds) lastEmployeeIds.add(id);
+
+  // Deposits (rate-limited to once per 0.4s)
+  depositSfxCD -= world.time.dt;
+  const depositSum = world.upgradePads.reduce((s, p) => s + p.deposited, 0);
+  if (depositSum > lastDepositSum + 0.5 && depositSfxCD <= 0) {
+    sfxDeposit();
+    depositSfxCD = 0.4;
+  }
+  lastDepositSum = depositSum;
+
+  hpBars.sync(world, camera);
   hud.update(world);
   renderer.render(scene, camera);
 }
