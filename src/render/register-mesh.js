@@ -1,12 +1,48 @@
 import * as THREE from 'three';
+import { createInstance, enableShadows } from '../assets.js';
 
-const counterMat = new THREE.MeshLambertMaterial({ color: 0x8a6a3a });
 const cookedMat = new THREE.MeshLambertMaterial({ color: 0x6b3014 });
 const STACK_PIECE_HEIGHT = 0.18;
-
 const meatGeom = new THREE.BoxGeometry(0.4, STACK_PIECE_HEIGHT, 0.55);
 
 export function createRegisterMesh() {
+  const group = new THREE.Group();
+
+  const inst = createInstance('register');
+  if (inst) {
+    enableShadows(inst.scene);
+    inst.scene.scale.setScalar(1.5);
+    group.add(inst.scene);
+  } else {
+    group.add(createProceduralRegister());
+  }
+
+  // Counter stack above the stand (always procedural — gameplay UI element)
+  const counterStack = new THREE.Group();
+  counterStack.position.set(0, 1.2, 0);
+  group.add(counterStack);
+  group.userData.cookedStack = counterStack;
+
+  return group;
+}
+
+export function syncRegisterStack(group, counterStack) {
+  const stack = group.userData.cookedStack;
+  if (!stack) return;
+  const display = Math.min(counterStack, 12);
+  while (stack.children.length > display) stack.children.pop();
+  while (stack.children.length < display) {
+    const piece = new THREE.Mesh(meatGeom, cookedMat);
+    piece.castShadow = true;
+    stack.add(piece);
+  }
+  for (let i = 0; i < stack.children.length; i++) {
+    stack.children[i].position.set(0, i * STACK_PIECE_HEIGHT, 0);
+  }
+}
+
+function createProceduralRegister() {
+  const counterMat = new THREE.MeshLambertMaterial({ color: 0x8a6a3a });
   const group = new THREE.Group();
 
   // Counter base — wide flat box
@@ -28,24 +64,5 @@ export function createRegisterMesh() {
   cashBox.castShadow = true;
   group.add(cashBox);
 
-  // A stack-group child for cooked meat shown on the counter top
-  const cookedStack = new THREE.Group();
-  cookedStack.position.set(0.2, 0.8, 0);
-  group.add(cookedStack);
-  group.userData.cookedStack = cookedStack;
-
   return group;
-}
-
-export function syncRegisterStack(group, counterStack) {
-  const stack = group.userData.cookedStack;
-  while (stack.children.length > counterStack) stack.children.pop();
-  while (stack.children.length < counterStack) {
-    const piece = new THREE.Mesh(meatGeom, cookedMat);
-    piece.castShadow = true;
-    stack.add(piece);
-  }
-  for (let i = 0; i < stack.children.length; i++) {
-    stack.children[i].position.set(0, i * STACK_PIECE_HEIGHT, 0);
-  }
 }

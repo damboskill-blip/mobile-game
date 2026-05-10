@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createInstance, tintInstance, enableShadows } from '../assets.js';
 
 const cookShirtMat = new THREE.MeshLambertMaterial({ color: 0xeae0d4 });   // chef whites
 const cookHatMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
@@ -8,7 +9,30 @@ const REPAIRMAN_SHIRT = 0x4a78c8;
 const TANNER_SHIRT = 0x6a4a2a;
 const headMat = new THREE.MeshLambertMaterial({ color: 0xe8c8a0 });
 
+const TYPE_CONFIG = {
+  cook:       { key: 'cook',    tint: 0xffffff }, // white aprons
+  cashier:    { key: 'cashier', tint: null },      // suit color is fine
+  porter:     { key: 'worker',  tint: 0xff8800 }, // orange shirt tint
+  repairman:  { key: 'worker',  tint: 0x4a78c8 }, // blue overalls tint
+  tanner:     { key: 'tanner',  tint: 0x6a4a2a }, // brown apron tint
+};
+
 export function createEmployeeMesh(type) {
+  const cfg = TYPE_CONFIG[type] || { key: 'worker', tint: null };
+  const inst = createInstance(cfg.key);
+  if (inst) {
+    const group = new THREE.Group();
+    enableShadows(inst.scene);
+    if (cfg.tint != null) tintInstance(inst.scene, cfg.tint);
+    inst.scene.scale.setScalar(1.0);
+    inst.scene.rotation.y = Math.PI;
+    group.add(inst.scene);
+    return group;
+  }
+  return createProceduralEmployee(type);
+}
+
+function createProceduralEmployee(type) {
   const group = new THREE.Group();
 
   let shirtMat;
