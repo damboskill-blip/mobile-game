@@ -89,13 +89,10 @@ function handlePorter(world, emp, dt) {
     moveToward(emp, world.fire.pos.x, world.fire.pos.z, dt, BALANCE.worker.porterSpeed);
     const d = Math.hypot(emp.pos.x - world.fire.pos.x, emp.pos.z - world.fire.pos.z);
     if (d <= BALANCE.fire.transferRange) {
-      // Dump as much as fits
-      const slotsFree = world.fire.capacity - world.fire.cooking.length;
-      const toTransfer = Math.min(slotsFree, emp.stack.raw);
-      for (let i = 0; i < toTransfer; i++) {
-        world.fire.cooking.push({ id: ++world.nextId, timer: BALANCE.fire.cookTimer });
+      for (let i = 0; i < emp.stack.raw; i++) {
+        world.fire.queue.push({ id: ++world.nextId });
       }
-      emp.stack.raw -= toTransfer;
+      emp.stack.raw = 0;
       emp.state = 'idle';
     }
   }
@@ -159,6 +156,14 @@ function handleTanner(world, emp, dt) {
     } else if (emp.stack.pelt > 0) {
       emp.state = 'going-to-tannery';
     }
+    // Return to tannery to supervise when idle and no pelt to pick up
+    if (emp.state === 'idle' && emp.stack.pelt === 0) {
+      const tp = world.tannery.pos;
+      const dToTannery = Math.hypot(emp.pos.x - tp.x, emp.pos.z - tp.z);
+      if (dToTannery > 1.5) {
+        moveToward(emp, tp.x, tp.z, dt, BALANCE.worker.tannerSpeed);
+      }
+    }
   } else if (emp.state === 'going-to-pelt') {
     const piece = world.pelts.find(p => p.id === emp.target);
     if (!piece) { emp.state = 'idle'; emp.target = null; return; }
@@ -175,12 +180,10 @@ function handleTanner(world, emp, dt) {
     moveToward(emp, world.tannery.pos.x, world.tannery.pos.z, dt, BALANCE.worker.tannerSpeed);
     const d = Math.hypot(emp.pos.x - world.tannery.pos.x, emp.pos.z - world.tannery.pos.z);
     if (d <= BALANCE.tannery.transferRange) {
-      const slotsFree = world.tannery.capacity - world.tannery.processing.length;
-      const toTransfer = Math.min(slotsFree, emp.stack.pelt);
-      for (let i = 0; i < toTransfer; i++) {
-        world.tannery.processing.push({ id: ++world.nextId, timer: BALANCE.tannery.tanTime });
+      for (let i = 0; i < emp.stack.pelt; i++) {
+        world.tannery.queue.push({ id: ++world.nextId });
       }
-      emp.stack.pelt -= toTransfer;
+      emp.stack.pelt = 0;
       emp.state = 'idle';
     }
   }
@@ -194,6 +197,14 @@ export function update(world, dt) {
         if (piece) {
           emp.state = 'going-to-cooked';
           emp.target = piece.id;
+        }
+        // Return to fire to supervise when idle and no cooked to pick up
+        if (emp.state === 'idle') {
+          const fp = world.fire.pos;
+          const dToFire = Math.hypot(emp.pos.x - fp.x, emp.pos.z - fp.z);
+          if (dToFire > 1.5) {
+            moveToward(emp, fp.x, fp.z, dt, COOK_SPEED);
+          }
         }
       } else if (emp.state === 'going-to-cooked') {
         const piece = world.meatCooked.find(p => p.id === emp.target);

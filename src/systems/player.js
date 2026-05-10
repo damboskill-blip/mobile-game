@@ -3,17 +3,15 @@ import { BALANCE } from '../balance.js';
 
 function tryTransferStackToFire(world) {
   const p = world.player;
-  if (!world.fire.pos) return;
   if (p.stack.raw <= 0) return;
+  if (!world.fire.pos) return;
   const dx = world.fire.pos.x - p.pos.x;
   const dz = world.fire.pos.z - p.pos.z;
   if (Math.hypot(dx, dz) > BALANCE.fire.transferRange) return;
-  const slotsFree = world.fire.capacity - world.fire.cooking.length;
-  const toTransfer = Math.min(slotsFree, p.stack.raw);
-  for (let i = 0; i < toTransfer; i++) {
-    world.fire.cooking.push({ id: ++world.nextId, timer: BALANCE.fire.cookTimer });
+  for (let i = 0; i < p.stack.raw; i++) {
+    world.fire.queue.push({ id: ++world.nextId });
   }
-  p.stack.raw -= toTransfer;
+  p.stack.raw = 0;
 }
 
 function tryTransferStackToCounter(world) {
@@ -34,12 +32,10 @@ function tryTransferStackToTannery(world) {
   const dx = world.tannery.pos.x - p.pos.x;
   const dz = world.tannery.pos.z - p.pos.z;
   if (Math.hypot(dx, dz) > BALANCE.tannery.transferRange) return;
-  const slotsFree = world.tannery.capacity - world.tannery.processing.length;
-  const toTransfer = Math.min(slotsFree, p.stack.pelt);
-  for (let i = 0; i < toTransfer; i++) {
-    world.tannery.processing.push({ id: ++world.nextId, timer: BALANCE.tannery.tanTime });
+  for (let i = 0; i < p.stack.pelt; i++) {
+    world.tannery.queue.push({ id: ++world.nextId });
   }
-  p.stack.pelt -= toTransfer;
+  p.stack.pelt = 0;
 }
 
 function tryTransferStackToLeatherCounter(world) {

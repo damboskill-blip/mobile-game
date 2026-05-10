@@ -1,9 +1,31 @@
-const BOB_FREQUENCY = 6;       // hz approximately
-const BOB_AMPLITUDE = 0.06;
+const BOB_FREQUENCY = 7;       // hz approximately
+const BOB_AMPLITUDE = 0.11;
 const MOVE_THRESHOLD = 0.001;  // squared distance per frame to count as moving
 
 const lastPositions = new WeakMap();
 const phases = new WeakMap();
+
+const swingState = new WeakMap();
+const SWING_DURATION = 0.25;
+
+export function triggerAxeSwing(playerMesh) {
+  swingState.set(playerMesh, SWING_DURATION);
+}
+
+export function updateAxeSwing(playerMesh, dt) {
+  const axeGroup = playerMesh.userData.axeGroup;
+  if (!axeGroup) return;
+  const t = swingState.get(playerMesh) || 0;
+  if (t > 0) {
+    const newT = Math.max(0, t - dt);
+    swingState.set(playerMesh, newT);
+    // Swing arc: rotate axeGroup.x from -0.6 → +0.4 over duration
+    const progress = 1 - (newT / SWING_DURATION);
+    axeGroup.rotation.x = -0.6 + progress * 1.2;
+  } else {
+    axeGroup.rotation.x = 0;
+  }
+}
 
 export function applyWalkBob(mesh, currentX, currentZ, dt) {
   const last = lastPositions.get(mesh);

@@ -33,6 +33,7 @@ export const BALANCE = {
     capacity: 5,
     cookTimer: 2.0,
     transferRange: 1.5,
+    superviseRadius: 3.0,
   },
   register: {
     transferRange: 1.5,
@@ -70,6 +71,7 @@ export const BALANCE = {
     capacity: 5,
     tanTime: 3.5,           // longer than meat cookTimer for balance
     transferRange: 1.5,
+    superviseRadius: 3.0,
   },
   leatherCounter: {
     transferRange: 1.5,

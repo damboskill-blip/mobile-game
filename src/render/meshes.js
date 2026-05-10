@@ -39,23 +39,29 @@ export function createPlayerMesh() {
     group.add(leg);
   }
 
-  // Axe — visible cue that player has weapon, even at foundation phase
+  // Axe — grouped so swing animation can rotate around hand pivot
+  const axeGroup = new THREE.Group();
+  axeGroup.position.set(0.5, 1.0, 0.05);
+
   const axeHandle = new THREE.Mesh(
     new THREE.CylinderGeometry(0.04, 0.04, 0.6, 6),
     new THREE.MeshLambertMaterial({ color: 0x6b3f1d })
   );
-  axeHandle.position.set(0.5, 0.9, 0.05);
+  axeHandle.position.set(0, -0.1, 0);
   axeHandle.rotation.z = Math.PI / 4;
   axeHandle.castShadow = true;
-  group.add(axeHandle);
+  axeGroup.add(axeHandle);
 
   const axeHead = new THREE.Mesh(
     new THREE.BoxGeometry(0.25, 0.18, 0.04),
     new THREE.MeshLambertMaterial({ color: 0x9a9a9a })
   );
-  axeHead.position.set(0.74, 1.16, 0.05);
+  axeHead.position.set(0.24, 0.16, 0);
   axeHead.castShadow = true;
-  group.add(axeHead);
+  axeGroup.add(axeHead);
+
+  group.add(axeGroup);
+  group.userData.axeGroup = axeGroup;
 
   return group;
 }

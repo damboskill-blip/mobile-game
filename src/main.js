@@ -17,12 +17,12 @@ import { startLoop } from './loop.js';
 import { createScene, createRenderer } from './render/scene.js';
 import { createPlayerMesh } from './render/meshes.js';
 import { createFenceSegmentMesh, applyFenceSegmentTransform } from './render/fence-mesh.js';
-import { createFireMesh, tickFireFlicker } from './render/fire-mesh.js';
+import { createFireMesh, tickFireFlicker, syncFireQueueStack } from './render/fire-mesh.js';
 import { createBearMesh } from './render/bear-mesh.js';
 import { createMeatMesh } from './render/meat-mesh.js';
 import { createPeltMesh } from './render/pelt-mesh.js';
 import { createLeatherMesh } from './render/leather-mesh.js';
-import { createTanneryMesh } from './render/tannery-mesh.js';
+import { createTanneryMesh, syncTanneryQueueStack } from './render/tannery-mesh.js';
 import { createLeatherCounterMesh, syncLeatherCounterStack } from './render/leather-counter-mesh.js';
 import { createStackGroups, syncStackMesh } from './render/stack-mesh.js';
 import { createCamera, updateCamera, handleResize } from './camera.js';
@@ -36,7 +36,7 @@ import { createTowerMesh, applyTowerLevel, setTowerRotationToTarget } from './re
 import { setupHud, setupPadLabels } from './ui.js';
 import { createSmokeEmitter, updateSmoke } from './render/smoke.js';
 import { triggerShake, applyShake } from './render/camera-shake.js';
-import { applyWalkBob } from './render/animations.js';
+import { applyWalkBob, triggerAxeSwing, updateAxeSwing } from './render/animations.js';
 import { spawnHitSparks, spawnMoneyPop, updateParticles } from './render/particles.js';
 
 const canvas = document.getElementById('game');
@@ -52,6 +52,8 @@ const playerMesh = createPlayerMesh();
 const stackGroups = createStackGroups();
 playerMesh.add(stackGroups.raw);
 playerMesh.add(stackGroups.cooked);
+playerMesh.add(stackGroups.pelt);
+playerMesh.add(stackGroups.leather);
 scene.add(playerMesh);
 
 // Fence — one mesh per segment, indexed by segment id
@@ -132,6 +134,8 @@ function autoSave(world) {
   if (saveTimer >= 5) { saveWorld(world); saveTimer = 0; }
 }
 
+let lastAxeCD = 0;
+
 const systems = [updateBear, updateFence, updateFire, updateTannery, updateCustomer, updateLeatherCustomer, updatePlayer, updateMeat, updateMoney, updateUpgradePad, updateEmployee, updateTower];
 
 function syncEntityMeshes(entityArray, meshMap, scene, factory) {
@@ -167,6 +171,13 @@ function render(world) {
     playerMesh.visible = false;
   }
   syncStackMesh(stackGroups, world.player.stack);
+
+  // Axe swing detection: cooldownTimer just jumped from 0 to >0 means attack fired
+  if (world.player.axe.cooldownTimer > lastAxeCD + 0.01) {
+    triggerAxeSwing(playerMesh);
+  }
+  lastAxeCD = world.player.axe.cooldownTimer;
+  updateAxeSwing(playerMesh, world.time.dt);
 
   // Fence
   for (const seg of world.fence.segments) {
@@ -256,6 +267,8 @@ function render(world) {
   padLabels.sync(world, camera);
   updateCamera(camera, world, world.time.dt);
   tickFireFlicker(fireMesh, world.time.elapsed);
+  syncFireQueueStack(fireMesh, world.fire.queue.length);
+  syncTanneryQueueStack(tanneryMesh, world.tannery.queue.length);
   updateSmoke(fireSmoke, world.time.dt);
   updateSmoke(tannerySmoke, world.time.dt);
   if (world.pendingShake > 0) {

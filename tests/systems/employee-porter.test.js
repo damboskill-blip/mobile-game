@@ -76,34 +76,33 @@ describe('porter employee', () => {
     expect(porter.state).toBe('going-to-fire');
   });
 
-  it('porter dumps stack at fire when within transferRange', () => {
+  it('porter dumps stack into fire.queue when within transferRange', () => {
     const w = createWorld();
     // Place porter right at fire
     const porter = spawnPorter(w, w.fire.pos.x, w.fire.pos.z);
     porter.stack.raw = 3;
     porter.state = 'going-to-fire';
-    const beforeCooking = w.fire.cooking.length;
+    const beforeQueue = w.fire.queue.length;
     updateEmployee(w, 0.016);
-    const added = w.fire.cooking.length - beforeCooking;
+    const added = w.fire.queue.length - beforeQueue;
     expect(added).toBe(3);
     expect(porter.stack.raw).toBe(0);
     expect(porter.state).toBe('idle');
   });
 
-  it('porter only dumps up to fire capacity', () => {
+  it('porter dumps all raw into queue with no capacity limit', () => {
     const w = createWorld();
-    // Fill fire most of the way
-    const slotsAlready = w.fire.capacity - 1;
-    for (let i = 0; i < slotsAlready; i++) {
+    // Fill fire cooking already to capacity
+    for (let i = 0; i < w.fire.capacity; i++) {
       w.fire.cooking.push({ id: ++w.nextId, timer: 2 });
     }
     const porter = spawnPorter(w, w.fire.pos.x, w.fire.pos.z);
     porter.stack.raw = 3;
     porter.state = 'going-to-fire';
     updateEmployee(w, 0.016);
-    // Only 1 slot free, should dump 1
-    expect(w.fire.cooking.length).toBe(w.fire.capacity);
-    expect(porter.stack.raw).toBe(2); // 3 - 1
+    // All 3 go into queue regardless of cooking capacity
+    expect(w.fire.queue.length).toBe(3);
+    expect(porter.stack.raw).toBe(0);
     expect(porter.state).toBe('idle');
   });
 

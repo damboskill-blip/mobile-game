@@ -4,6 +4,9 @@ const stoneMat = new THREE.MeshLambertMaterial({ color: 0x4a4a4a });
 const woodMat = new THREE.MeshLambertMaterial({ color: 0x4a2c14 });
 const flameOrange = new THREE.MeshBasicMaterial({ color: 0xff6a1a, transparent: true, opacity: 0.9 });
 const flameYellow = new THREE.MeshBasicMaterial({ color: 0xffd154, transparent: true, opacity: 0.85 });
+const rawQueueMat = new THREE.MeshLambertMaterial({ color: 0xc04a3a });
+const QUEUE_PIECE_H = 0.16;
+const queuePieceGeom = new THREE.BoxGeometry(0.32, QUEUE_PIECE_H, 0.45);
 
 export function createFireMesh() {
   const group = new THREE.Group();
@@ -45,7 +48,28 @@ export function createFireMesh() {
   group.userData.flameOuter = outerFlame;
   group.userData.flameInner = innerFlame;
 
+  // Queue stack: raw meat boxes stacked beside the fire
+  const queueStack = new THREE.Group();
+  queueStack.position.set(0.8, 0, 0);
+  group.add(queueStack);
+  group.userData.queueStack = queueStack;
+
   return group;
+}
+
+export function syncFireQueueStack(group, count) {
+  const stack = group.userData.queueStack;
+  if (!stack) return;
+  const display = Math.min(count, 12);
+  while (stack.children.length > display) stack.children.pop();
+  while (stack.children.length < display) {
+    const piece = new THREE.Mesh(queuePieceGeom, rawQueueMat);
+    piece.castShadow = true;
+    stack.add(piece);
+  }
+  for (let i = 0; i < stack.children.length; i++) {
+    stack.children[i].position.set(0, 0.1 + i * QUEUE_PIECE_H, 0);
+  }
 }
 
 export function tickFireFlicker(group, time) {
