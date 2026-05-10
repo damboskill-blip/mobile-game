@@ -1,6 +1,7 @@
 import * as THREE from 'three';
+import { getStoneTexture } from './textures.js';
 
-const baseMat = new THREE.MeshLambertMaterial({ color: 0x6a6a6a });
+const baseMat = new THREE.MeshLambertMaterial({ map: getStoneTexture() });
 const turretMat = new THREE.MeshLambertMaterial({ color: 0x8a4a3a });
 const beamL1 = new THREE.MeshLambertMaterial({ color: 0xffd154 });
 const beamL2 = new THREE.MeshLambertMaterial({ color: 0xff7a3a });

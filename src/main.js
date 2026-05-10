@@ -34,6 +34,8 @@ import { createPadMesh, syncPadMesh } from './render/pad-mesh.js';
 import { createEmployeeMesh } from './render/employee-mesh.js';
 import { createTowerMesh, applyTowerLevel, setTowerRotationToTarget } from './render/tower-mesh.js';
 import { setupHud, setupPadLabels } from './ui.js';
+import { createSmokeEmitter, updateSmoke } from './render/smoke.js';
+import { triggerShake, applyShake } from './render/camera-shake.js';
 
 const canvas = document.getElementById('game');
 const world = createWorld();
@@ -64,6 +66,11 @@ const fireMesh = createFireMesh();
 fireMesh.position.set(world.fire.pos.x, 0, world.fire.pos.z);
 scene.add(fireMesh);
 
+// Smoke emitter above fire
+const fireSmoke = createSmokeEmitter();
+fireSmoke.position.set(world.fire.pos.x, 0, world.fire.pos.z);
+scene.add(fireSmoke);
+
 // Register mesh
 const registerMesh = createRegisterMesh();
 registerMesh.position.set(world.register.pos.x, 0, world.register.pos.z);
@@ -73,6 +80,11 @@ scene.add(registerMesh);
 const tanneryMesh = createTanneryMesh();
 tanneryMesh.position.set(world.tannery.pos.x, 0, world.tannery.pos.z);
 scene.add(tanneryMesh);
+
+// Smoke emitter above tannery
+const tannerySmoke = createSmokeEmitter();
+tannerySmoke.position.set(world.tannery.pos.x, 0, world.tannery.pos.z);
+scene.add(tannerySmoke);
 
 // Leather counter mesh
 const leatherCounterMesh = createLeatherCounterMesh();
@@ -189,6 +201,13 @@ function render(world) {
   padLabels.sync(world, camera);
   updateCamera(camera, world, world.time.dt);
   tickFireFlicker(fireMesh, world.time.elapsed);
+  updateSmoke(fireSmoke, world.time.dt);
+  updateSmoke(tannerySmoke, world.time.dt);
+  if (world.pendingShake > 0) {
+    triggerShake(world.pendingShake, 0.2);
+    world.pendingShake = 0;
+  }
+  applyShake(camera, world.time.dt);
   hud.update(world);
   renderer.render(scene, camera);
 }

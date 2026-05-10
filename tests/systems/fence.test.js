@@ -42,4 +42,12 @@ describe('fence damage', () => {
     const w = createWorld();
     expect(() => updateFence(w, 0.016)).not.toThrow();
   });
+
+  it('damageFenceSegment sets world.pendingShake', () => {
+    const w = createWorld();
+    expect(w.pendingShake).toBe(0);
+    const segId = w.fence.segments[0].id;
+    damageFenceSegment(w, segId, 10);
+    expect(w.pendingShake).toBeGreaterThan(0);
+  });
 });

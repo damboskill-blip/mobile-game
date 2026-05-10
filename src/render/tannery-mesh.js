@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-const woodMat = new THREE.MeshLambertMaterial({ color: 0x4a2c14 });
+import { getWoodTexture } from './textures.js';
+const woodMat = new THREE.MeshLambertMaterial({ map: getWoodTexture() });
 const leatherStretchMat = new THREE.MeshLambertMaterial({ color: 0xa87848 });
 export function createTanneryMesh() {
   const group = new THREE.Group();

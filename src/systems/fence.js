@@ -5,6 +5,7 @@ export function damageFenceSegment(world, segmentId, amount) {
   if (!seg || seg.broken) return;
   seg.hp = Math.max(0, seg.hp - amount);
   if (seg.hp === 0) seg.broken = true;
+  world.pendingShake = Math.max(world.pendingShake || 0, 0.05);
 }
 
 export function repairAllSegments(world) {
