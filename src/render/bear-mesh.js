@@ -32,6 +32,15 @@ export function createBearMesh() {
   nose.position.set(0, 0.65, 0.97);
   group.add(nose);
 
+  // Ears
+  const earGeom = new THREE.BoxGeometry(0.16, 0.16, 0.1);
+  for (const x of [-0.18, 0.18]) {
+    const ear = new THREE.Mesh(earGeom, furMat);
+    ear.position.set(x, 1.0, 0.65);
+    ear.castShadow = true;
+    group.add(ear);
+  }
+
   // 4 legs
   const legGeom = new THREE.BoxGeometry(0.22, 0.4, 0.22);
   const legPositions = [
