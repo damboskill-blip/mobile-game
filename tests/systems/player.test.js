@@ -205,25 +205,22 @@ describe('balance regenRate', () => {
 });
 
 describe('player → fire transfer', () => {
-  it('transfers raw stack onto fire.cooking when within transferRange', () => {
+  it('transfers raw stack into fire.queue when within transferRange', () => {
     const w = createWorld();
     w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
     w.player.stack = { raw: 3, cooked: 0, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
-    expect(w.fire.cooking).toHaveLength(3);
+    expect(w.fire.queue).toHaveLength(3);
     expect(w.player.stack.raw).toBe(0);
   });
 
-  it('transfers only what fits in fire capacity, leaving remainder in stack', () => {
+  it('transfers all raw into queue with no capacity limit at transfer', () => {
     const w = createWorld();
     w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
-    w.player.stack = { raw: 8, cooked: 0, pelt: 0, leather: 0 };
-    for (let i = 0; i < 3; i++) {
-      w.fire.cooking.push({ id: ++w.nextId, timer: BALANCE.fire.cookTimer });
-    }
+    w.player.stack = { raw: 20, cooked: 0, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
-    expect(w.fire.cooking).toHaveLength(BALANCE.fire.capacity);
-    expect(w.player.stack.raw).toBe(8 - (BALANCE.fire.capacity - 3));
+    expect(w.fire.queue.length + w.fire.cooking.length).toBe(20);
+    expect(w.player.stack.raw).toBe(0);
   });
 
   it('does not transfer cooked meat to fire', () => {
@@ -231,6 +228,7 @@ describe('player → fire transfer', () => {
     w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
     w.player.stack = { raw: 0, cooked: 3, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
+    expect(w.fire.queue).toHaveLength(0);
     expect(w.fire.cooking).toHaveLength(0);
     expect(w.player.stack.cooked).toBe(3);
   });
@@ -240,16 +238,8 @@ describe('player → fire transfer', () => {
     w.player.pos = { x: w.fire.pos.x + 5, y: 0, z: w.fire.pos.z };
     w.player.stack = { raw: 2, cooked: 0, pelt: 0, leather: 0 };
     updatePlayer(w, 0.016);
-    expect(w.fire.cooking).toHaveLength(0);
+    expect(w.fire.queue).toHaveLength(0);
     expect(w.player.stack.raw).toBe(2);
-  });
-
-  it('newly-transferred pieces start with full cookTimer', () => {
-    const w = createWorld();
-    w.player.pos = { x: w.fire.pos.x + 0.5, y: 0, z: w.fire.pos.z };
-    w.player.stack = { raw: 1, cooked: 0, pelt: 0, leather: 0 };
-    updatePlayer(w, 0.016);
-    expect(w.fire.cooking[0].timer).toBe(BALANCE.fire.cookTimer);
   });
 });
 
@@ -292,12 +282,12 @@ describe('player → counter transfer', () => {
 });
 
 describe('player → tannery transfer', () => {
-  it('transfers pelt stack into tannery.processing when within transferRange', () => {
+  it('transfers pelt stack into tannery.queue when within transferRange', () => {
     const w = createWorld();
     w.player.pos = { x: w.tannery.pos.x + 0.5, y: 0, z: w.tannery.pos.z };
     w.player.stack = { raw: 0, cooked: 0, pelt: 3, leather: 0 };
     updatePlayer(w, 0.016);
-    expect(w.tannery.processing).toHaveLength(3);
+    expect(w.tannery.queue).toHaveLength(3);
     expect(w.player.stack.pelt).toBe(0);
   });
 
@@ -306,21 +296,17 @@ describe('player → tannery transfer', () => {
     w.player.pos = { x: w.tannery.pos.x + 5, y: 0, z: w.tannery.pos.z };
     w.player.stack = { raw: 0, cooked: 0, pelt: 2, leather: 0 };
     updatePlayer(w, 0.016);
-    expect(w.tannery.processing).toHaveLength(0);
+    expect(w.tannery.queue).toHaveLength(0);
     expect(w.player.stack.pelt).toBe(2);
   });
 
-  it('respects tannery capacity', () => {
+  it('transfers all pelts into queue with no capacity limit at transfer', () => {
     const w = createWorld();
     w.player.pos = { x: w.tannery.pos.x + 0.5, y: 0, z: w.tannery.pos.z };
-    w.player.stack = { raw: 0, cooked: 0, pelt: 8, leather: 0 };
-    // Fill tannery most of the way
-    for (let i = 0; i < 3; i++) {
-      w.tannery.processing.push({ id: ++w.nextId, timer: 3.5 });
-    }
+    w.player.stack = { raw: 0, cooked: 0, pelt: 20, leather: 0 };
     updatePlayer(w, 0.016);
-    expect(w.tannery.processing).toHaveLength(w.tannery.capacity);
-    expect(w.player.stack.pelt).toBe(8 - (w.tannery.capacity - 3));
+    expect(w.tannery.queue.length + w.tannery.processing.length).toBe(20);
+    expect(w.player.stack.pelt).toBe(0);
   });
 });
 

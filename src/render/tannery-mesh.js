@@ -2,6 +2,10 @@ import * as THREE from 'three';
 import { getWoodTexture } from './textures.js';
 const woodMat = new THREE.MeshLambertMaterial({ map: getWoodTexture() });
 const leatherStretchMat = new THREE.MeshLambertMaterial({ color: 0xa87848 });
+const peltQueueMat = new THREE.MeshLambertMaterial({ color: 0x6a4a2a });
+const QUEUE_PIECE_H = 0.16;
+const queuePieceGeom = new THREE.BoxGeometry(0.32, QUEUE_PIECE_H, 0.45);
+
 export function createTanneryMesh() {
   const group = new THREE.Group();
   // Wooden base/work surface
@@ -29,5 +33,27 @@ export function createTanneryMesh() {
     beam.castShadow = true;
     group.add(beam);
   }
+
+  // Queue stack: pelt boxes stacked beside the tannery
+  const queueStack = new THREE.Group();
+  queueStack.position.set(0.8, 0, 0);
+  group.add(queueStack);
+  group.userData.queueStack = queueStack;
+
   return group;
+}
+
+export function syncTanneryQueueStack(group, count) {
+  const stack = group.userData.queueStack;
+  if (!stack) return;
+  const display = Math.min(count, 12);
+  while (stack.children.length > display) stack.children.pop();
+  while (stack.children.length < display) {
+    const piece = new THREE.Mesh(queuePieceGeom, peltQueueMat);
+    piece.castShadow = true;
+    stack.add(piece);
+  }
+  for (let i = 0; i < stack.children.length; i++) {
+    stack.children[i].position.set(0, 0.1 + i * QUEUE_PIECE_H, 0);
+  }
 }

@@ -59,15 +59,30 @@ describe('tanner employee', () => {
     expect(tanner.state).toBe('going-to-tannery');
   });
 
-  it('tanner dumps pelt stack at tannery when within transferRange', () => {
+  it('tanner dumps pelt stack into tannery.queue when within transferRange', () => {
     const w = createWorld();
     const tanner = spawnTanner(w, w.tannery.pos.x, w.tannery.pos.z);
     tanner.stack.pelt = 3;
     tanner.state = 'going-to-tannery';
-    const beforeProcessing = w.tannery.processing.length;
+    const beforeQueue = w.tannery.queue.length;
     updateEmployee(w, 0.016);
-    const added = w.tannery.processing.length - beforeProcessing;
+    const added = w.tannery.queue.length - beforeQueue;
     expect(added).toBe(3);
+    expect(tanner.stack.pelt).toBe(0);
+    expect(tanner.state).toBe('idle');
+  });
+
+  it('tanner dumps all pelts into queue with no capacity limit', () => {
+    const w = createWorld();
+    // Fill processing already to capacity
+    for (let i = 0; i < w.tannery.capacity; i++) {
+      w.tannery.processing.push({ id: ++w.nextId, timer: 3.5 });
+    }
+    const tanner = spawnTanner(w, w.tannery.pos.x, w.tannery.pos.z);
+    tanner.stack.pelt = 3;
+    tanner.state = 'going-to-tannery';
+    updateEmployee(w, 0.016);
+    expect(w.tannery.queue.length).toBe(3);
     expect(tanner.stack.pelt).toBe(0);
     expect(tanner.state).toBe('idle');
   });
