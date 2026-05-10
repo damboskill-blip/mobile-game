@@ -1,58 +1,23 @@
 import * as THREE from 'three';
-import { createFoxInstance } from '../assets.js';
+import { createInstance, tintInstance, enableShadows } from '../assets.js';
 
 const furMat = new THREE.MeshLambertMaterial({ color: 0x4a2e18 });
 const noseMat = new THREE.MeshLambertMaterial({ color: 0x1a1410 });
 
-const BEAR_COLOR = 0x6a3a1c;
-const FOX_SCALE = 0.022; // Fox.glb is ~70 units; scale to ~1.5 unit world size
-const FOX_Y_OFFSET = 0.0;
+const BEAR_TINT = 0x4a2a14; // dark brown
+const BEAR_SCALE = 1.6;     // Quaternius animals are ~1 unit; bump for bear feel
 
 export function createBearMesh() {
-  const fox = createFoxInstance();
-  if (fox) {
+  const inst = createInstance('bear');
+  if (inst) {
     const group = new THREE.Group();
-    const model = fox.scene;
-    // Tint to brown bear. Fox.glb materials are MeshStandardMaterial with a baked-in fur texture;
-    // just override the color; texture multiplication keeps detail visible.
-    model.traverse(child => {
-      if (child.isMesh && child.material) {
-        child.material = child.material.clone();
-        if (child.material.color) child.material.color.setHex(BEAR_COLOR);
-        child.castShadow = true;
-        child.receiveShadow = false;
-      }
-    });
-    model.scale.setScalar(FOX_SCALE);
-    model.position.y = FOX_Y_OFFSET;
+    const model = inst.scene;
+    tintInstance(model, BEAR_TINT);
+    enableShadows(model);
+    model.scale.setScalar(BEAR_SCALE);
+    // Quaternius models often face -Z; rotate 180 if needed
+    model.rotation.y = Math.PI;
     group.add(model);
-
-    // AnimationMixer + clips. Fox has 'Survey' (idle), 'Walk', 'Run'.
-    const mixer = new THREE.AnimationMixer(model);
-    const walkClip =
-      THREE.AnimationClip.findByName(fox.animations, 'Walk') ||
-      fox.animations[1] ||
-      fox.animations[0];
-    const idleClip =
-      THREE.AnimationClip.findByName(fox.animations, 'Survey') ||
-      fox.animations[0];
-    const runClip =
-      THREE.AnimationClip.findByName(fox.animations, 'Run') ||
-      walkClip;
-
-    const walkAction = mixer.clipAction(walkClip);
-    const idleAction = mixer.clipAction(idleClip);
-    const runAction = mixer.clipAction(runClip);
-    idleAction.play();
-    walkAction.play();
-    runAction.play();
-    walkAction.weight = 0;
-    runAction.weight = 0;
-    idleAction.weight = 1;
-
-    group.userData.mixer = mixer;
-    group.userData.actions = { idle: idleAction, walk: walkAction, run: runAction };
-    group.userData.isFox = true;
     return group;
   }
   return createProceduralBearMesh();

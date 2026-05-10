@@ -1,10 +1,38 @@
 import * as THREE from 'three';
+import { createInstance, enableShadows } from '../assets.js';
 
-// Pool of clothing colors for visual variety
+// Pool of clothing colors for visual variety (used in procedural fallback)
 const SHIRTS = [0x4a78c8, 0xc8a878, 0x8a6a3a, 0x4a8a6a, 0xa86890, 0xc06848];
 const PREMIUM_SHIRTS = [0xffd700, 0x8a4ac8, 0xc8324a, 0x4ac890];
 
 export function createCustomerMesh() {
+  const variant = Math.random() < 0.5 ? 'customerA' : 'customerB';
+  const inst = createInstance(variant);
+  if (inst) {
+    const group = new THREE.Group();
+    enableShadows(inst.scene);
+    inst.scene.scale.setScalar(1.0);
+    inst.scene.rotation.y = Math.PI;
+    group.add(inst.scene);
+    return group;
+  }
+  return createProceduralCustomer();
+}
+
+export function createPremiumCustomerMesh() {
+  const inst = createInstance('premiumCustomer');
+  if (inst) {
+    const group = new THREE.Group();
+    enableShadows(inst.scene);
+    inst.scene.scale.setScalar(1.0);
+    inst.scene.rotation.y = Math.PI;
+    group.add(inst.scene);
+    return group;
+  }
+  return createProceduralPremiumCustomer();
+}
+
+function createProceduralCustomer() {
   const group = new THREE.Group();
   const shirtColor = SHIRTS[Math.floor(Math.random() * SHIRTS.length)];
 
@@ -27,7 +55,7 @@ export function createCustomerMesh() {
   return group;
 }
 
-export function createPremiumCustomerMesh() {
+function createProceduralPremiumCustomer() {
   const group = new THREE.Group();
   const shirt = PREMIUM_SHIRTS[Math.floor(Math.random() * PREMIUM_SHIRTS.length)];
   const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.32, 0.7, 4, 8),

@@ -1,6 +1,25 @@
 import * as THREE from 'three';
+import { createInstance, enableShadows } from '../assets.js';
+
+const PLAYER_SCALE = 1.0;
 
 export function createPlayerMesh() {
+  const inst = createInstance('player');
+  if (inst) {
+    const group = new THREE.Group();
+    const model = inst.scene;
+    enableShadows(model);
+    model.scale.setScalar(PLAYER_SCALE);
+    model.rotation.y = Math.PI;
+    group.add(model);
+    // No axeGroup attachment for GLTF path — the model already has accessories.
+    // updateAxeSwing() in animations.js no-ops when userData.axeGroup is missing.
+    return group;
+  }
+  return createProceduralPlayerMesh();
+}
+
+function createProceduralPlayerMesh() {
   const group = new THREE.Group();
 
   // Body: capsule (cylinder + 2 spheres top/bottom — three.js capsule is fine in r0.160+)

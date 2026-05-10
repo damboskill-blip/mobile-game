@@ -1,11 +1,14 @@
 import * as THREE from 'three';
 import { getWoodTexture } from './textures.js';
+import { createInstance, enableShadows } from '../assets.js';
 
+const FENCE_SCALE = 1.0;
+
+// Procedural fallback constants
 const LOG_COUNT = 12;    // logs per segment — covers chord ~4.6 of 4.68 between centers
 const LOG_HEIGHT = 1.4;
 const LOG_RADIUS = 0.18;
 const LOG_SPACING = 0.42;
-const SEGMENT_ARC_LENGTH = 4.7; // approximately the chord at radius 12 / 16 segments
 
 function makeWoodMat() {
   const woodTex = getWoodTexture();
@@ -17,16 +20,16 @@ const woodMat = makeWoodMat();
 
 export function createFenceSegmentMesh() {
   const group = new THREE.Group();
-  for (let i = 0; i < LOG_COUNT; i++) {
-    const log = new THREE.Mesh(
-      new THREE.CylinderGeometry(LOG_RADIUS, LOG_RADIUS, LOG_HEIGHT, 6),
-      woodMat
-    );
-    log.position.set((i - (LOG_COUNT - 1) / 2) * LOG_SPACING, LOG_HEIGHT / 2, 0);
-    log.castShadow = true;
-    log.receiveShadow = true;
-    group.add(log);
+
+  const inst = createInstance('fence');
+  if (inst) {
+    enableShadows(inst.scene);
+    inst.scene.scale.setScalar(FENCE_SCALE);
+    group.add(inst.scene);
+  } else {
+    group.add(createProceduralFence());
   }
+
   return group;
 }
 
@@ -42,4 +45,19 @@ export function applyFenceSegmentTransform(mesh, segment) {
     mesh.rotation.x = 0;
     mesh.position.y = 0;
   }
+}
+
+function createProceduralFence() {
+  const group = new THREE.Group();
+  for (let i = 0; i < LOG_COUNT; i++) {
+    const log = new THREE.Mesh(
+      new THREE.CylinderGeometry(LOG_RADIUS, LOG_RADIUS, LOG_HEIGHT, 6),
+      woodMat
+    );
+    log.position.set((i - (LOG_COUNT - 1) / 2) * LOG_SPACING, LOG_HEIGHT / 2, 0);
+    log.castShadow = true;
+    log.receiveShadow = true;
+    group.add(log);
+  }
+  return group;
 }
