@@ -81,21 +81,24 @@ export function enableShadows(scene) {
 }
 
 // Quaternius modular_men ship in T-pose with no idle animation. Manually
-// rotate Shoulder/UpperArm bones so the arms hang along the body instead
-// of sticking straight out.
-const SHOULDER_NAMES = new Set([
-  'Shoulder.L', 'Shoulder.R',
-  'shoulder.L', 'shoulder.R',
-  'UpperArm.L', 'UpperArm.R',
-  'upperArm.L', 'upperArm.R',
-]);
+// rotate shoulder/upper-arm bones so the arms hang along the body.
+// Both Shoulder.L/R AND UpperArm.L/R are present in these rigs; rotating
+// both gives a clean down-pose.
+const SHOULDER_BONE_NAMES = new Set(['Shoulder.L', 'Shoulder.R']);
+const UPPERARM_BONE_NAMES = new Set(['UpperArm.L', 'UpperArm.R']);
 
 export function poseArmsDown(scene) {
   scene.traverse(node => {
-    if (!node.isBone) return;
-    if (!SHOULDER_NAMES.has(node.name)) return;
-    // For Quaternius rigs, rotating Shoulder around Z brings the arm down.
-    const sign = node.name.endsWith('.L') ? 1 : -1;
-    node.rotation.z = sign * (Math.PI / 2.4);
+    if (!node.name) return;
+    // For Quaternius rigs in default T-pose with arms along world ±X,
+    // rotating around the bone's local Z brings the arm down toward -Y.
+    // Left arm needs -π/2 (CW around Z), right arm needs +π/2.
+    if (SHOULDER_BONE_NAMES.has(node.name)) {
+      const sign = node.name.endsWith('.L') ? -1 : 1;
+      node.rotation.z = sign * (Math.PI / 2.1);
+    } else if (UPPERARM_BONE_NAMES.has(node.name)) {
+      const sign = node.name.endsWith('.L') ? -1 : 1;
+      node.rotation.z = sign * (Math.PI / 8); // small extra bend
+    }
   });
 }

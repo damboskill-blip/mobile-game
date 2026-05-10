@@ -2,10 +2,13 @@ import * as THREE from 'three';
 import { getWoodTexture } from './textures.js';
 import { createInstance, enableShadows } from '../assets.js';
 
-const FENCE_SCALE = 4.5;
+// 16 segments around base of radius 12 → chord = 24·sin(π/16) ≈ 4.68 units.
+// Scale each fence segment so its x-axis span matches this chord (plus a
+// small overlap so they butt together without gaps).
+const FENCE_TARGET_WIDTH = 4.95;
 
 // Procedural fallback constants
-const LOG_COUNT = 12;    // logs per segment — covers chord ~4.6 of 4.68 between centers
+const LOG_COUNT = 12;
 const LOG_HEIGHT = 1.4;
 const LOG_RADIUS = 0.18;
 const LOG_SPACING = 0.42;
@@ -24,7 +27,13 @@ export function createFenceSegmentMesh() {
   const inst = createInstance('fence');
   if (inst) {
     enableShadows(inst.scene);
-    inst.scene.scale.setScalar(FENCE_SCALE);
+    // Compute model bounding box; scale uniformly so x-extent matches target.
+    const box = new THREE.Box3().setFromObject(inst.scene);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const widthAxis = Math.max(size.x, size.z, 0.001);
+    const scale = FENCE_TARGET_WIDTH / widthAxis;
+    inst.scene.scale.setScalar(scale);
     group.add(inst.scene);
   } else {
     group.add(createProceduralFence());
