@@ -94,7 +94,8 @@ const padLabels = setupPadLabels();
 
 // Bears + meat — managed dynamically each frame
 const bearMeshes = new Map();
-const meatMeshes = new Map();
+const meatRawMeshes = new Map();
+const meatCookedMeshes = new Map();
 const customerMeshes = new Map();
 const moneyMeshes = new Map();
 const peltMeshes = new Map();
@@ -158,8 +159,8 @@ function render(world) {
   syncEntityMeshes(world.bears, bearMeshes, scene, () => createBearMesh());
 
   // Meat — raw and cooked, both keyed by id (no overlap)
-  syncEntityMeshes(world.meatRaw, meatMeshes, scene, () => createMeatMesh('raw'));
-  syncEntityMeshes(world.meatCooked, meatMeshes, scene, () => createMeatMesh('cooked'));
+  syncEntityMeshes(world.meatRaw, meatRawMeshes, scene, () => createMeatMesh('raw'));
+  syncEntityMeshes(world.meatCooked, meatCookedMeshes, scene, () => createMeatMesh('cooked'));
 
   syncEntityMeshes(world.customers, customerMeshes, scene, () => createCustomerMesh());
   syncEntityMeshes(world.register.moneyPiles, moneyMeshes, scene, () => createMoneyMesh());
