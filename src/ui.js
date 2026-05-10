@@ -1,3 +1,5 @@
+import { isAudioEnabled, setAudioEnabled, loadAudioPref } from './audio.js';
+
 export function setupHud(container = document.body) {
   const hud = document.createElement('div');
   hud.id = 'hud';
@@ -28,6 +30,18 @@ export function setupHud(container = document.body) {
   hud.appendChild(hpEl);
 
   container.appendChild(hud);
+
+  // Audio toggle button (top-right, pointer-events enabled)
+  loadAudioPref();
+  const audioBtn = document.createElement('button');
+  audioBtn.id = 'audio-toggle';
+  audioBtn.style.cssText = 'position:fixed; top:env(safe-area-inset-top, 8px); right:env(safe-area-inset-right, 8px); padding:8px 12px; background:rgba(0,0,0,0.5); border:1px solid #fff; border-radius:8px; color:#fff; font-size:18px; z-index:100;';
+  audioBtn.textContent = isAudioEnabled() ? '🔊' : '🔇';
+  audioBtn.addEventListener('click', () => {
+    setAudioEnabled(!isAudioEnabled());
+    audioBtn.textContent = isAudioEnabled() ? '🔊' : '🔇';
+  });
+  container.appendChild(audioBtn);
 
   return {
     update(world) {
