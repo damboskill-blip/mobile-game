@@ -79,3 +79,23 @@ export function enableShadows(scene) {
     }
   });
 }
+
+// Quaternius modular_men ship in T-pose with no idle animation. Manually
+// rotate Shoulder/UpperArm bones so the arms hang along the body instead
+// of sticking straight out.
+const SHOULDER_NAMES = new Set([
+  'Shoulder.L', 'Shoulder.R',
+  'shoulder.L', 'shoulder.R',
+  'UpperArm.L', 'UpperArm.R',
+  'upperArm.L', 'upperArm.R',
+]);
+
+export function poseArmsDown(scene) {
+  scene.traverse(node => {
+    if (!node.isBone) return;
+    if (!SHOULDER_NAMES.has(node.name)) return;
+    // For Quaternius rigs, rotating Shoulder around Z brings the arm down.
+    const sign = node.name.endsWith('.L') ? 1 : -1;
+    node.rotation.z = sign * (Math.PI / 2.4);
+  });
+}

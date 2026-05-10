@@ -13,7 +13,7 @@ export function createTanneryMesh() {
   const inst = createInstance('tannery');
   if (inst) {
     enableShadows(inst.scene);
-    inst.scene.scale.setScalar(1.5);
+    inst.scene.scale.setScalar(2.8);
     group.add(inst.scene);
   } else {
     group.add(createProceduralTannery());

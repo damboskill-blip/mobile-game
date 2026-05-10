@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { getWoodTexture } from './textures.js';
 import { createInstance, enableShadows } from '../assets.js';
 
-const FENCE_SCALE = 1.0;
+const FENCE_SCALE = 4.5;
 
 // Procedural fallback constants
 const LOG_COUNT = 12;    // logs per segment — covers chord ~4.6 of 4.68 between centers

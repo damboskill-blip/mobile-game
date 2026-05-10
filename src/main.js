@@ -235,23 +235,22 @@ function render(world) {
     if (!m) continue;
     applyWalkBob(m, b.pos.x, b.pos.z, world.time.dt);
 
-    if (m.userData.isFox && m.userData.mixer) {
+    if (m.userData.isAnimatedBear && m.userData.mixer) {
       m.userData.mixer.update(world.time.dt);
       const actions = m.userData.actions;
       const isMoving =
         b.state === 'approaching' || b.state === 'through';
       const isAttacking =
         b.state === 'attacking-fence' || b.state === 'attacking-player';
-      // Cross-fade weights toward target
       const target = {
-        idle: isAttacking ? 1 : 0,
+        idle: !isMoving && !isAttacking ? 1 : 0,
         walk: isMoving ? 1 : 0,
-        run: 0,
+        attack: isAttacking ? 1 : 0,
       };
       const k = Math.min(1, world.time.dt * 6);
       actions.idle.weight += (target.idle - actions.idle.weight) * k;
       actions.walk.weight += (target.walk - actions.walk.weight) * k;
-      actions.run.weight += (target.run - actions.run.weight) * k;
+      actions.attack.weight += (target.attack - actions.attack.weight) * k;
     }
   }
 

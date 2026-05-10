@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createInstance, enableShadows } from '../assets.js';
+import { createInstance, enableShadows, poseArmsDown } from '../assets.js';
 
 // Pool of clothing colors for visual variety (used in procedural fallback)
 const SHIRTS = [0x4a78c8, 0xc8a878, 0x8a6a3a, 0x4a8a6a, 0xa86890, 0xc06848];
@@ -11,8 +11,8 @@ export function createCustomerMesh() {
   if (inst) {
     const group = new THREE.Group();
     enableShadows(inst.scene);
+    poseArmsDown(inst.scene);
     inst.scene.scale.setScalar(1.0);
-    inst.scene.rotation.y = Math.PI;
     group.add(inst.scene);
     return group;
   }
@@ -24,8 +24,8 @@ export function createPremiumCustomerMesh() {
   if (inst) {
     const group = new THREE.Group();
     enableShadows(inst.scene);
+    poseArmsDown(inst.scene);
     inst.scene.scale.setScalar(1.0);
-    inst.scene.rotation.y = Math.PI;
     group.add(inst.scene);
     return group;
   }

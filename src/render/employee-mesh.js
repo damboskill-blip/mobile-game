@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createInstance, tintInstance, enableShadows } from '../assets.js';
+import { createInstance, tintInstance, enableShadows, poseArmsDown } from '../assets.js';
 
 const cookShirtMat = new THREE.MeshLambertMaterial({ color: 0xeae0d4 });   // chef whites
 const cookHatMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
@@ -23,9 +23,9 @@ export function createEmployeeMesh(type) {
   if (inst) {
     const group = new THREE.Group();
     enableShadows(inst.scene);
+    poseArmsDown(inst.scene);
     if (cfg.tint != null) tintInstance(inst.scene, cfg.tint);
     inst.scene.scale.setScalar(1.0);
-    inst.scene.rotation.y = Math.PI;
     group.add(inst.scene);
     return group;
   }

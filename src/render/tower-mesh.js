@@ -8,14 +8,16 @@ export function createTowerMesh() {
   const inst = createInstance('tower');
   if (inst) {
     enableShadows(inst.scene);
-    inst.scene.scale.setScalar(1.0);
+    const TOWER_BASE_SCALE = 0.5;
+    inst.scene.scale.setScalar(TOWER_BASE_SCALE);
     group.add(inst.scene);
-    // Use the whole model as "turret" so rotation-toward-target works
     group.userData.turret = inst.scene;
+    group.userData.baseScale = TOWER_BASE_SCALE;
   } else {
     const proc = createProceduralTower();
     group.add(proc);
     group.userData.turret = proc.userData.turret;
+    group.userData.baseScale = 1.0;
   }
 
   return group;
@@ -24,7 +26,8 @@ export function createTowerMesh() {
 export function applyTowerLevel(group, tower) {
   const turret = group.userData.turret;
   if (!turret) return;
-  const s = 1 + (tower.level - 1) * 0.18;
+  const base = group.userData.baseScale ?? 1.0;
+  const s = base * (1 + (tower.level - 1) * 0.18);
   turret.scale.setScalar(s);
   // Color tint per level via traversal (only applied to GLTF path)
   const colors = [0xffd154, 0xff7a3a, 0xc83a3a];

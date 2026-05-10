@@ -5,7 +5,7 @@ const furMat = new THREE.MeshLambertMaterial({ color: 0x4a2e18 });
 const noseMat = new THREE.MeshLambertMaterial({ color: 0x1a1410 });
 
 const BEAR_TINT = 0x4a2a14; // dark brown
-const BEAR_SCALE = 1.6;     // Quaternius animals are ~1 unit; bump for bear feel
+const BEAR_SCALE = 0.55;    // Wolf model is large; scale way down to fit world
 
 export function createBearMesh() {
   const inst = createInstance('bear');
@@ -15,9 +15,41 @@ export function createBearMesh() {
     tintInstance(model, BEAR_TINT);
     enableShadows(model);
     model.scale.setScalar(BEAR_SCALE);
-    // Quaternius models often face -Z; rotate 180 if needed
-    model.rotation.y = Math.PI;
+    // Wolf model faces -Z natively; bear AI rotates to face target via group.rotation.y,
+    // so model itself should be neutral (face +Z when group rot=0).
+    // Test result: removing Math.PI makes them face the right direction.
     group.add(model);
+
+    // Animation mixer with Wolf's baked clips
+    if (inst.animations && inst.animations.length > 0) {
+      const mixer = new THREE.AnimationMixer(model);
+      const idleClip =
+        THREE.AnimationClip.findByName(inst.animations, 'AnimalArmature|Idle') ||
+        THREE.AnimationClip.findByName(inst.animations, 'Idle') ||
+        inst.animations[0];
+      const walkClip =
+        THREE.AnimationClip.findByName(inst.animations, 'AnimalArmature|Walk') ||
+        THREE.AnimationClip.findByName(inst.animations, 'Walk') ||
+        idleClip;
+      const attackClip =
+        THREE.AnimationClip.findByName(inst.animations, 'AnimalArmature|Attack') ||
+        THREE.AnimationClip.findByName(inst.animations, 'Attack') ||
+        idleClip;
+
+      const idleAction = mixer.clipAction(idleClip);
+      const walkAction = mixer.clipAction(walkClip);
+      const attackAction = mixer.clipAction(attackClip);
+      idleAction.play();
+      walkAction.play();
+      attackAction.play();
+      idleAction.weight = 1;
+      walkAction.weight = 0;
+      attackAction.weight = 0;
+
+      group.userData.mixer = mixer;
+      group.userData.actions = { idle: idleAction, walk: walkAction, attack: attackAction };
+      group.userData.isAnimatedBear = true;
+    }
     return group;
   }
   return createProceduralBearMesh();
