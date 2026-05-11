@@ -43,27 +43,10 @@ export function setupHud(container = document.body) {
   });
   container.appendChild(audioBtn);
 
-  // Tiny diagnostic panel for debugging skeleton pose issues. Removed after
-  // T-pose verification.
-  const diagEl = document.createElement('div');
-  diagEl.id = 'pose-diag';
-  diagEl.style.cssText = 'position:fixed; bottom:env(safe-area-inset-bottom, 8px); right:env(safe-area-inset-right, 8px); padding:6px 10px; background:rgba(0,0,0,0.6); color:#9f9; font-family:monospace; font-size:11px; border-radius:4px; z-index:100; pointer-events:none; max-width:200px;';
-  diagEl.textContent = 'pose: loading…';
-  container.appendChild(diagEl);
-
   return {
-    update(world, poseDiag) {
+    update(world) {
       moneyEl.textContent = `💰 $${world.money.pocket}`;
       hpEl.textContent = `❤️ ${Math.max(0, Math.round(world.player.hp))}`;
-      if (poseDiag) {
-        // Show the first few bone names containing "houlder", "rm", or "and"
-        // to reveal the actual format used by the model.
-        const armish = poseDiag.namesSeen
-          .filter(n => /houlder|rm\.|and\.|^Arm|^Hand/i.test(n))
-          .slice(0, 4)
-          .join(',');
-        diagEl.textContent = `S:${poseDiag.skinnedMeshes} P:${poseDiag.bonesPosed} N:${poseDiag.namesSeen.length} ${armish}`;
-      }
     },
   };
 }
