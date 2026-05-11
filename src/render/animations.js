@@ -20,36 +20,38 @@ const SWING_DURATION = 0.4;
 const SWING_ARC = 2.2;
 const SWING_START = -1.1;
 
+// Pre-built rest delta — arms straight down, no forward tilt (prior X-tilt
+// over-rotated and crossed the hands in front of the body).
 const _axisZ = new THREE.Vector3(0, 0, 1);
-const _axisX = new THREE.Vector3(1, 0, 0);
-const _tmpQ = new THREE.Quaternion();
+const _worldX = new THREE.Vector3(1, 0, 0);
 
-function makeArmDownDelta(zSign) {
-  const q = new THREE.Quaternion().setFromAxisAngle(_axisZ, zSign * (Math.PI / 2.2));
-  const forward = new THREE.Quaternion().setFromAxisAngle(_axisX, -Math.PI / 7);
-  return q.multiply(forward);
-}
+const ARM_DOWN_L = new THREE.Quaternion().setFromAxisAngle(_axisZ, Math.PI / 2.2);
+const ARM_DOWN_R = new THREE.Quaternion().setFromAxisAngle(_axisZ, -Math.PI / 2.2);
 
-const ARM_DOWN_L = makeArmDownDelta(1);
-const ARM_DOWN_R = makeArmDownDelta(-1);
-
-// Per-bone configuration: which bones to pose, what rest delta to apply,
-// and how to swing them during a walk cycle.
+// Mirrored Quaternius rig: the right-side bones have flipped local frames,
+// so the same numeric local rotation produces mirrored world motion. For
+// the procedural walk swing we rotate around WORLD X (rotateOnWorldAxis)
+// so left/right pairs need OPPOSITE signs in world space — but mirroring
+// means we pass the same numeric sign and let the rig do the flip for us.
+// Arms swing forward-back; legs swing in opposite phase to arms so the gait
+// reads as walking.
+// kind: arm or leg (arms forward at phase, legs forward at phase+π)
+// side: -1 for left, +1 for right — opposite world swing per side.
 const BONE_CONFIG = {
-  ShoulderL:    { rest: ARM_DOWN_L, swingSign:  1, amp: ARM_SWING_AMP },
-  'Shoulder.L': { rest: ARM_DOWN_L, swingSign:  1, amp: ARM_SWING_AMP },
-  ShoulderR:    { rest: ARM_DOWN_R, swingSign: -1, amp: ARM_SWING_AMP },
-  'Shoulder.R': { rest: ARM_DOWN_R, swingSign: -1, amp: ARM_SWING_AMP },
-  // Legs: no rest delta (bind pose has them straight down); swing opposite
-  // to corresponding arm so the gait reads as walking, not waving.
-  UpperLegL:    { rest: null, swingSign: -1, amp: LEG_SWING_AMP },
-  'UpperLeg.L': { rest: null, swingSign: -1, amp: LEG_SWING_AMP },
-  UpperLegR:    { rest: null, swingSign:  1, amp: LEG_SWING_AMP },
-  'UpperLeg.R': { rest: null, swingSign:  1, amp: LEG_SWING_AMP },
+  ShoulderL:    { rest: ARM_DOWN_L, kind: 'arm', side: -1 },
+  'Shoulder.L': { rest: ARM_DOWN_L, kind: 'arm', side: -1 },
+  ShoulderR:    { rest: ARM_DOWN_R, kind: 'arm', side:  1 },
+  'Shoulder.R': { rest: ARM_DOWN_R, kind: 'arm', side:  1 },
+  UpperLegL:    { rest: null,       kind: 'leg', side: -1 },
+  'UpperLeg.L': { rest: null,       kind: 'leg', side: -1 },
+  UpperLegR:    { rest: null,       kind: 'leg', side:  1 },
+  'UpperLeg.R': { rest: null,       kind: 'leg', side:  1 },
 };
 
+const ARM_AMP = 0.45;
+const LEG_AMP = 0.55;
+
 function applyHumanBones(mesh, phase, swingAmount) {
-  let touched = false;
   mesh.traverse(child => {
     if (!child.isSkinnedMesh || !child.skeleton) return;
     for (const bone of child.skeleton.bones) {
@@ -64,13 +66,17 @@ function applyHumanBones(mesh, phase, swingAmount) {
       bone.quaternion.copy(bind);
       if (cfg.rest) bone.quaternion.multiply(cfg.rest);
       if (swingAmount > 0.001) {
-        const angle = Math.sin(phase) * cfg.amp * cfg.swingSign * swingAmount;
-        _tmpQ.setFromAxisAngle(_axisX, angle);
-        bone.quaternion.multiply(_tmpQ);
+        const isLeg = cfg.kind === 'leg';
+        const amp = isLeg ? LEG_AMP : ARM_AMP;
+        // Legs in opposite phase to arms (canonical walk: left arm forward
+        // pairs with right leg forward). side flips L/R world direction.
+        const offsetPhase = isLeg ? phase + Math.PI : phase;
+        const angle = Math.sin(offsetPhase) * amp * cfg.side * swingAmount;
+        // Rotate around WORLD X axis — bypasses mirrored-rig local frame.
+        bone.rotateOnWorldAxis(_worldX, angle);
       }
-      touched = true;
     }
-    if (touched) child.skeleton.update();
+    child.skeleton.update();
   });
 }
 
