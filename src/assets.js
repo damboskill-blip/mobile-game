@@ -91,14 +91,22 @@ const UPPERARM_BONE_NAMES = new Set(['UpperArmL', 'UpperArmR', 'UpperArm.L', 'Up
 
 const bindQuaternions = new WeakMap();
 
-// Pre-compute delta quaternions. Try Z axis first; if wrong direction we'll
-// flip sign. For Quaternius rig: Z swings arm in the YZ plane around the
-// shoulder pivot, which from T-pose folds it down.
+// Pre-compute delta quaternions. Z axis brings arm down. X axis nudges
+// the arm forward so it doesn't hang behind the back (the Quaternius rig
+// has the bone's local Z pointing slightly backward in T-pose).
 const _axisZ = new THREE.Vector3(0, 0, 1);
-const DELTA_SHOULDER_L = new THREE.Quaternion().setFromAxisAngle(_axisZ, Math.PI / 2.1);
-const DELTA_SHOULDER_R = new THREE.Quaternion().setFromAxisAngle(_axisZ, -Math.PI / 2.1);
-const DELTA_UPPER_L = new THREE.Quaternion().setFromAxisAngle(_axisZ, Math.PI / 10);
-const DELTA_UPPER_R = new THREE.Quaternion().setFromAxisAngle(_axisZ, -Math.PI / 10);
+const _axisX = new THREE.Vector3(1, 0, 0);
+
+function makeArmDelta(zSign) {
+  const q = new THREE.Quaternion().setFromAxisAngle(_axisZ, zSign * (Math.PI / 2.2));
+  const forward = new THREE.Quaternion().setFromAxisAngle(_axisX, -Math.PI / 7);
+  return q.multiply(forward);
+}
+
+const DELTA_SHOULDER_L = makeArmDelta(1);
+const DELTA_SHOULDER_R = makeArmDelta(-1);
+const DELTA_UPPER_L = new THREE.Quaternion().setFromAxisAngle(_axisZ, Math.PI / 12);
+const DELTA_UPPER_R = new THREE.Quaternion().setFromAxisAngle(_axisZ, -Math.PI / 12);
 
 // Diagnostic: count last invocation. main.js can surface this.
 let _lastDiag = { skinnedMeshes: 0, bonesPosed: 0, namesSeen: [] };
