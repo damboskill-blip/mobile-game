@@ -84,8 +84,10 @@ export function enableShadows(scene) {
 // bind-pose quaternion; overwriting with Euler-angles wipes the bind and
 // produces unpredictable orientations. Instead, store the original bind
 // quaternion per bone and apply a DELTA rotation on top each frame.
-const SHOULDER_BONE_NAMES = new Set(['Shoulder.L', 'Shoulder.R']);
-const UPPERARM_BONE_NAMES = new Set(['UpperArm.L', 'UpperArm.R']);
+// Three.js / GLTFLoader strips the dot from bone names: "Shoulder.L" in
+// the GLB becomes "ShoulderL" at runtime. Match the runtime spelling.
+const SHOULDER_BONE_NAMES = new Set(['ShoulderL', 'ShoulderR', 'Shoulder.L', 'Shoulder.R']);
+const UPPERARM_BONE_NAMES = new Set(['UpperArmL', 'UpperArmR', 'UpperArm.L', 'UpperArm.R']);
 
 const bindQuaternions = new WeakMap();
 
@@ -113,10 +115,10 @@ export function poseArmsDown(scene) {
       if (!bone) continue;
       namesSeen.add(bone.name);
       let delta = null;
-      if (bone.name === 'Shoulder.L') delta = DELTA_SHOULDER_L;
-      else if (bone.name === 'Shoulder.R') delta = DELTA_SHOULDER_R;
-      else if (bone.name === 'UpperArm.L') delta = DELTA_UPPER_L;
-      else if (bone.name === 'UpperArm.R') delta = DELTA_UPPER_R;
+      if (bone.name === 'ShoulderL' || bone.name === 'Shoulder.L') delta = DELTA_SHOULDER_L;
+      else if (bone.name === 'ShoulderR' || bone.name === 'Shoulder.R') delta = DELTA_SHOULDER_R;
+      else if (bone.name === 'UpperArmL' || bone.name === 'UpperArm.L') delta = DELTA_UPPER_L;
+      else if (bone.name === 'UpperArmR' || bone.name === 'UpperArm.R') delta = DELTA_UPPER_R;
       if (!delta) continue;
       let bind = bindQuaternions.get(bone);
       if (!bind) {
