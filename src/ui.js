@@ -56,7 +56,13 @@ export function setupHud(container = document.body) {
       moneyEl.textContent = `💰 $${world.money.pocket}`;
       hpEl.textContent = `❤️ ${Math.max(0, Math.round(world.player.hp))}`;
       if (poseDiag) {
-        diagEl.textContent = `skinned:${poseDiag.skinnedMeshes} posed:${poseDiag.bonesPosed} names:${poseDiag.namesSeen.length}`;
+        // Show the first few bone names containing "houlder", "rm", or "and"
+        // to reveal the actual format used by the model.
+        const armish = poseDiag.namesSeen
+          .filter(n => /houlder|rm\.|and\.|^Arm|^Hand/i.test(n))
+          .slice(0, 4)
+          .join(',');
+        diagEl.textContent = `S:${poseDiag.skinnedMeshes} P:${poseDiag.bonesPosed} N:${poseDiag.namesSeen.length} ${armish}`;
       }
     },
   };
