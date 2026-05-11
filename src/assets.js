@@ -80,31 +80,54 @@ export function enableShadows(scene) {
   });
 }
 
-// Quaternius modular_men ship in T-pose with no idle animation. Manually
-// pose the skeleton so arms hang along the body.
-// Access bones via SkinnedMesh.skeleton.bones (canonical Three.js path) —
-// scene.traverse + isBone was unreliable after SkeletonUtils.clone.
+// Quaternius modular_men ship in T-pose. Each shoulder bone has a complex
+// bind-pose quaternion; overwriting with Euler-angles wipes the bind and
+// produces unpredictable orientations. Instead, store the original bind
+// quaternion per bone and apply a DELTA rotation on top each frame.
 const SHOULDER_BONE_NAMES = new Set(['Shoulder.L', 'Shoulder.R']);
 const UPPERARM_BONE_NAMES = new Set(['UpperArm.L', 'UpperArm.R']);
 
+const bindQuaternions = new WeakMap();
+
+// Pre-compute delta quaternions. Try Z axis first; if wrong direction we'll
+// flip sign. For Quaternius rig: Z swings arm in the YZ plane around the
+// shoulder pivot, which from T-pose folds it down.
+const _axisZ = new THREE.Vector3(0, 0, 1);
+const DELTA_SHOULDER_L = new THREE.Quaternion().setFromAxisAngle(_axisZ, Math.PI / 2.1);
+const DELTA_SHOULDER_R = new THREE.Quaternion().setFromAxisAngle(_axisZ, -Math.PI / 2.1);
+const DELTA_UPPER_L = new THREE.Quaternion().setFromAxisAngle(_axisZ, Math.PI / 10);
+const DELTA_UPPER_R = new THREE.Quaternion().setFromAxisAngle(_axisZ, -Math.PI / 10);
+
+// Diagnostic: count last invocation. main.js can surface this.
+let _lastDiag = { skinnedMeshes: 0, bonesPosed: 0, namesSeen: [] };
+export function getPoseDiag() { return _lastDiag; }
+
 export function poseArmsDown(scene) {
-  const seenBones = new Set();
+  let skinnedCount = 0;
+  let bonesPosed = 0;
+  const namesSeen = new Set();
   scene.traverse(child => {
     if (!child.isSkinnedMesh || !child.skeleton) return;
+    skinnedCount++;
     for (const bone of child.skeleton.bones) {
-      if (!bone || seenBones.has(bone)) continue;
-      seenBones.add(bone);
-      if (SHOULDER_BONE_NAMES.has(bone.name)) {
-        const sign = bone.name.endsWith('.L') ? -1 : 1;
-        // Apply rotation around all three axes — Quaternius rig orientation
-        // varies; we attack from multiple angles so at least one produces
-        // visible arm-down. The combined Euler still resolves correctly.
-        bone.rotation.set(0, 0, sign * (Math.PI / 2.1));
-      } else if (UPPERARM_BONE_NAMES.has(bone.name)) {
-        const sign = bone.name.endsWith('.L') ? -1 : 1;
-        bone.rotation.set(0, 0, sign * (Math.PI / 8));
+      if (!bone) continue;
+      namesSeen.add(bone.name);
+      let delta = null;
+      if (bone.name === 'Shoulder.L') delta = DELTA_SHOULDER_L;
+      else if (bone.name === 'Shoulder.R') delta = DELTA_SHOULDER_R;
+      else if (bone.name === 'UpperArm.L') delta = DELTA_UPPER_L;
+      else if (bone.name === 'UpperArm.R') delta = DELTA_UPPER_R;
+      if (!delta) continue;
+      let bind = bindQuaternions.get(bone);
+      if (!bind) {
+        bind = bone.quaternion.clone();
+        bindQuaternions.set(bone, bind);
       }
+      // bone.quaternion = bind * delta (apply rotation in local frame)
+      bone.quaternion.copy(bind).multiply(delta);
+      bonesPosed++;
     }
     child.skeleton.update();
   });
+  _lastDiag = { skinnedMeshes: skinnedCount, bonesPosed, namesSeen: [...namesSeen] };
 }
