@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loadAssets, poseArmsDown } from './assets.js';
+import { loadAssets, poseArmsDown, getPoseDiag } from './assets.js';
 import { createWorld, saveWorld, loadWorld } from './world.js';
 import { update as updatePlayer } from './systems/player.js';
 import { update as updateBear } from './systems/bear.js';
@@ -386,7 +386,7 @@ function render(world) {
   lastDepositSum = depositSum;
 
   hpBars.sync(world, camera);
-  hud.update(world);
+  hud.update(world, getPoseDiag());
   renderer.render(scene, camera);
 }
 

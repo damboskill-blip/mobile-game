@@ -43,10 +43,21 @@ export function setupHud(container = document.body) {
   });
   container.appendChild(audioBtn);
 
+  // Tiny diagnostic panel for debugging skeleton pose issues. Removed after
+  // T-pose verification.
+  const diagEl = document.createElement('div');
+  diagEl.id = 'pose-diag';
+  diagEl.style.cssText = 'position:fixed; bottom:env(safe-area-inset-bottom, 8px); right:env(safe-area-inset-right, 8px); padding:6px 10px; background:rgba(0,0,0,0.6); color:#9f9; font-family:monospace; font-size:11px; border-radius:4px; z-index:100; pointer-events:none; max-width:200px;';
+  diagEl.textContent = 'pose: loading…';
+  container.appendChild(diagEl);
+
   return {
-    update(world) {
+    update(world, poseDiag) {
       moneyEl.textContent = `💰 $${world.money.pocket}`;
       hpEl.textContent = `❤️ ${Math.max(0, Math.round(world.player.hp))}`;
+      if (poseDiag) {
+        diagEl.textContent = `skinned:${poseDiag.skinnedMeshes} posed:${poseDiag.bonesPosed} names:${poseDiag.namesSeen.length}`;
+      }
     },
   };
 }
