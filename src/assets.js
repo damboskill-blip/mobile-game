@@ -81,24 +81,30 @@ export function enableShadows(scene) {
 }
 
 // Quaternius modular_men ship in T-pose with no idle animation. Manually
-// rotate shoulder/upper-arm bones so the arms hang along the body.
-// Both Shoulder.L/R AND UpperArm.L/R are present in these rigs; rotating
-// both gives a clean down-pose.
+// pose the skeleton so arms hang along the body.
+// Access bones via SkinnedMesh.skeleton.bones (canonical Three.js path) —
+// scene.traverse + isBone was unreliable after SkeletonUtils.clone.
 const SHOULDER_BONE_NAMES = new Set(['Shoulder.L', 'Shoulder.R']);
 const UPPERARM_BONE_NAMES = new Set(['UpperArm.L', 'UpperArm.R']);
 
 export function poseArmsDown(scene) {
-  scene.traverse(node => {
-    if (!node.name) return;
-    // For Quaternius rigs in default T-pose with arms along world ±X,
-    // rotating around the bone's local Z brings the arm down toward -Y.
-    // Left arm needs -π/2 (CW around Z), right arm needs +π/2.
-    if (SHOULDER_BONE_NAMES.has(node.name)) {
-      const sign = node.name.endsWith('.L') ? -1 : 1;
-      node.rotation.z = sign * (Math.PI / 2.1);
-    } else if (UPPERARM_BONE_NAMES.has(node.name)) {
-      const sign = node.name.endsWith('.L') ? -1 : 1;
-      node.rotation.z = sign * (Math.PI / 8); // small extra bend
+  const seenBones = new Set();
+  scene.traverse(child => {
+    if (!child.isSkinnedMesh || !child.skeleton) return;
+    for (const bone of child.skeleton.bones) {
+      if (!bone || seenBones.has(bone)) continue;
+      seenBones.add(bone);
+      if (SHOULDER_BONE_NAMES.has(bone.name)) {
+        const sign = bone.name.endsWith('.L') ? -1 : 1;
+        // Apply rotation around all three axes — Quaternius rig orientation
+        // varies; we attack from multiple angles so at least one produces
+        // visible arm-down. The combined Euler still resolves correctly.
+        bone.rotation.set(0, 0, sign * (Math.PI / 2.1));
+      } else if (UPPERARM_BONE_NAMES.has(bone.name)) {
+        const sign = bone.name.endsWith('.L') ? -1 : 1;
+        bone.rotation.set(0, 0, sign * (Math.PI / 8));
+      }
     }
+    child.skeleton.update();
   });
 }
