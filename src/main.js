@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loadAssets, poseArmsDown } from './assets.js';
+import { loadAssets } from './assets.js';
 import { createWorld, saveWorld, loadWorld } from './world.js';
 import { update as updatePlayer } from './systems/player.js';
 import { update as updateBear } from './systems/bear.js';
@@ -211,9 +211,6 @@ function render(world) {
     playerMesh.visible = false;
   }
   syncStackMesh(stackGroups, world.player.stack);
-  // Re-apply arms-down pose every frame — Quaternius modular_men have no
-  // idle animation; without this, bones can reset to T-pose bind state.
-  poseArmsDown(playerMesh);
 
   // Axe swing detection: cooldownTimer just jumped from 0 to >0 means attack fired
   if (world.player.axe.cooldownTimer > lastAxeCD + 0.01) {
@@ -277,10 +274,7 @@ function render(world) {
   syncEntityMeshes(world.customers, customerMeshes, scene, () => createCustomerMesh());
   for (const c of world.customers) {
     const m = customerMeshes.get(c.id);
-    if (m) {
-      applyWalkBob(m, c.pos.x, c.pos.z, world.time.dt);
-      poseArmsDown(m);
-    }
+    if (m) applyWalkBob(m, c.pos.x, c.pos.z, world.time.dt);
   }
 
   syncEntityMeshes(world.register.moneyPiles, moneyMeshes, scene, () => createMoneyMesh());
@@ -291,10 +285,7 @@ function render(world) {
   syncEntityMeshes(world.premiumCustomers, premiumCustomerMeshes, scene, () => createPremiumCustomerMesh());
   for (const c of world.premiumCustomers) {
     const m = premiumCustomerMeshes.get(c.id);
-    if (m) {
-      applyWalkBob(m, c.pos.x, c.pos.z, world.time.dt);
-      poseArmsDown(m);
-    }
+    if (m) applyWalkBob(m, c.pos.x, c.pos.z, world.time.dt);
   }
 
   syncEntityMeshes(world.leatherCounter.moneyPiles, leatherMoneyMeshes, scene, () => createMoneyMesh());
@@ -321,10 +312,7 @@ function render(world) {
   syncEntityMeshes(world.employees, employeeMeshes, scene, (e) => createEmployeeMesh(e.type));
   for (const e of world.employees) {
     const m = employeeMeshes.get(e.id);
-    if (m) {
-      applyWalkBob(m, e.pos.x, e.pos.z, world.time.dt);
-      poseArmsDown(m);
-    }
+    if (m) applyWalkBob(m, e.pos.x, e.pos.z, world.time.dt);
   }
   syncEntityMeshes(world.towers, towerMeshes, scene, () => createTowerMesh());
   for (const tower of world.towers) {
